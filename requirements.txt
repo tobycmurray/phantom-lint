@@ -1,0 +1,9 @@
+spacy
+pytesseract
+pdf2image
+PyMuPDF
+Pillow
+sentence-transformers
+openai
+
+
