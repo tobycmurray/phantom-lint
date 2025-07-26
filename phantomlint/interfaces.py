@@ -15,7 +15,7 @@ class Splitter(ABC):
 
 class Analyzer(ABC):
     @abstractmethod
-    def analyze(self, phrases: List[str]) -> List[str]:
+    def analyze(self, bad_phrases: List[str], phrases: List[str]) -> List[str]:
         pass
 
 class Differ(ABC):

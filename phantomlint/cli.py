@@ -51,6 +51,16 @@ def main():
         # FIXME: add params here
         splitter = SlidingWindowSplitter()
 
+    bad_phrases=[]
+    if args.bad_list:
+        with open(args.injection_list, 'r', encoding='utf-8') as f:
+            bad_phrases = [line.strip() for line in f if line.strip()]
+    else:
+        bad_phrases=DEFAULT_BADLIST
+    print(f"analyzer bad list:")
+    for b in bad_phrases:
+        print(f" - {b}")
+    
     print(f"analyzer: {args.analyze}")
     if args.analyze=="llm":
         analyzer = OpenAIAnalyzer()
@@ -58,26 +68,19 @@ def main():
     #    analyzer = LLMGuardAnalyzer()
     else:
         assert args.analyze=="nlp"
-        if args.bad_list:
-            print(f"analyzer bad list: {args.bad_list}")
-            with open(args.injection_list, 'r', encoding='utf-8') as f:
-                known_phrases = [line.strip() for line in f if line.strip()]
-        else:
-            print(f"analyzer bad list: (default)")
-            known_phrases=DEFAULT_BADLIST
-        analyzer = LocalSemanticAnalyzer(known_phrases, threshold=args.threshold)
-
+        analyzer = LocalSemanticAnalyzer(threshold=args.threshold)
+    
     print(f"differ: {args.diff}")
     if args.diff=="raw":
         differ=ExactDiffer()
     else:
         differ=SemanticDiffer(threshold=args.threshold)
         
-    print("output directory: ", args.output)
+    print(f"output directory: {args.output}")
 
     input_path=Path(args.input_path)
     renderer=renderer_for(input_path)
     if renderer:
-        detect_hidden_phrases(input_path, Path(args.output), ocr, splitter, differ, analyzer, renderer, dpi=args.dpi, threshold=args.threshold)
+        detect_hidden_phrases(input_path, Path(args.output), ocr, splitter, differ, analyzer, renderer, args.dpi, args.threshold, bad_phrases)
     else:
         print(f"Unsupported input file type. Supported types: {SUPPORTED_FILETYPES}")
