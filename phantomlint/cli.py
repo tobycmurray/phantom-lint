@@ -36,7 +36,7 @@ def main():
     parser.add_argument("--split", choices=["sliding", "regex", "spacy", "grouped"], default=DEFAULT_SPLIT, help=f"Phrase splitting method (default: {DEFAULT_SPLIT})")
     parser.add_argument("--diff", choices=["raw", "nlp"], default=DEFAULT_DIFF, help=f"Diffing method to detect hidden phrases (default: {DEFAULT_DIFF})")
     parser.add_argument("--analyze", choices=["nlp", "llm"], default=DEFAULT_ANALYZE, help=f"Analysis method for detecting suspicious phrases (default: {DEFAULT_ANALYZE})")
-
+    parser.add_argument("--precise", action="store_true", help="Enable precise mode, which is very slow (default: off)")
     args = parser.parse_args()
 
     ocr = TesseractOCREngine()
@@ -80,7 +80,7 @@ def main():
     print(f"output directory: {args.output}")
 
     input_path=Path(args.input_path)
-    renderer=renderer_for(input_path)
+    renderer=renderer_for(input_path, args.precise)
     if renderer:
         detect_hidden_phrases(input_path, Path(args.output), ocr, splitter, differ, analyzer, renderer, args.dpi, args.threshold, bad_phrases)
     else:

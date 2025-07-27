@@ -41,8 +41,8 @@ class LocalSemanticAnalyzer(Analyzer):
                 closest_phrase = bad_phrases[col]
 
                 # Debug output
-                print(f"DEBUG Phrase: {phrase!r}")
-                print(f"DEBUG   Closest match: {closest_phrase!r} (score={score_val:.3f})")
+                #print(f"DEBUG Phrase: {phrase!r}")
+                #print(f"DEBUG   Closest match: {closest_phrase!r} (score={score_val:.3f})")
 
                 if scores.max().item() >= self.threshold:
                     matches.append(phrases[i])
