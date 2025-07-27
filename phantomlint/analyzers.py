@@ -31,20 +31,21 @@ class LocalSemanticAnalyzer(Analyzer):
             #scores = util.pytorch_cos_sim(emb, known_embeddings)
 
             sub_phrases = self.sliding_window_phrases(phrase, window_size)
-            sub_embeddings = self.encoder.encode(sub_phrases, convert_to_tensor=True)
-            scores = util.cos_sim(sub_embeddings, known_embeddings)
+            if len(sub_phrases) > 0:
+                sub_embeddings = self.encoder.encode(sub_phrases, convert_to_tensor=True)
+                scores = util.cos_sim(sub_embeddings, known_embeddings)
             
-            max_val, max_idx = scores.view(-1).max(0)
-            row, col = divmod(max_idx.item(), scores.size(1))
-            score_val = max_val.item()
-            closest_phrase = bad_phrases[col]
+                max_val, max_idx = scores.view(-1).max(0)
+                row, col = divmod(max_idx.item(), scores.size(1))
+                score_val = max_val.item()
+                closest_phrase = bad_phrases[col]
 
-            # Debug output
-            #print(f"→ Phrase: {phrase!r}")
-            #print(f"   Closest match: {closest_phrase!r} (score={score_val:.3f})")
+                # Debug output
+                print(f"DEBUG Phrase: {phrase!r}")
+                print(f"DEBUG   Closest match: {closest_phrase!r} (score={score_val:.3f})")
 
-            if scores.max().item() >= self.threshold:
-                matches.append(phrases[i])
+                if scores.max().item() >= self.threshold:
+                    matches.append(phrases[i])
 
         return matches
 
