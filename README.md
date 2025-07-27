@@ -7,6 +7,8 @@ We detect the badness in all of the following arxiv papers. This list
 was taken from https://arxiv.org/pdf/2507.06185, which is the paper
 "Hidden Prompts in Manuscripts Exploit AI-Assisted Peer Review". It
 should be noted that the current implementation yields false positives
+(unless the `--precise` flag is used, which can be *very* slow on
+some documents)
 when run on 2507.06185v1.pdf, except when regex splitting is used
 (with nlp diffing and analysis).
 
