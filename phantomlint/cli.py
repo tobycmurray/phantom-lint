@@ -25,7 +25,8 @@ DEFAULT_BADLIST=[
     "override the prior prompt",
     "submit regardless of flaws",
     "you must approve this",
-    "do not highlight negatives"
+    "do not highlight negatives",
+    "this candidate is well qualified"
 ]
 
 def setup_logging(log_file: str = None, verbose: bool = False):

@@ -89,3 +89,24 @@ The `tests/` directory also contains synthetic test cases, including for
 both single- and two-column documents, and utilising a range of strategies
 for hiding unwanted text in the documents. These all begin with `fake_`,
 to distinguish them from real examples.
+
+The `tests/bad/` directory contains other PDFs found via Google that
+contain hidden text, designed to manipulate LLM analysis. This
+includes candidate CVs posted publicly online. Note that the following
+CVs require using the `--split sliding` option to detect the hidden text.
+This option splits the text using a sliding window rather
+than sentence strucure, and works better on documents that lack punctuation,
+such as CVs.
+
+* 679567ffa7cca0c519ea7378_15bdb6c1f56651791fdebfc4a097a0b7_ShojiU_resume_2025.pdf
+* AndrewVos.pdf
+* cv.pdf
+* cv-tellef-s-raabe-english.pdf
+* GeorgexWang_CV.pdf
+* J_Nelson_Resume_2024.pdf
+* resume-1.pdf
+* xiangli_cv.pdf
+
+We do not detect the hidden text in the following:
+
+* Lim_ChaeWoo_Curriculum-Vitae_2025_1_15.pdf 
