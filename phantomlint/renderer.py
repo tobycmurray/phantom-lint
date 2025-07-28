@@ -24,6 +24,12 @@ class PDFRenderer(Renderer):
     def render_images(self, path: Path, dpi: int = 300) -> List[Image.Image]:
         return convert_from_path(str(path), dpi=dpi)
 
+# a PDF renderer that produces lots of small images (rather than one per page)
+# where each image is a logical element of the PDF document. Later, when each
+# image is OCR'd, this ensures that text chunks will be logically grouped
+# together, and thereby removes much of the burden on the OCR engine to have
+# to infer the page layout. The downside is that for large or complicated
+# documents, this is quite slow.
 class LocalizedPDFRenderer(Renderer):
     def extract_text(self, pdf_path: Path) -> str:
         doc = pymupdf.open(pdf_path)
@@ -36,7 +42,8 @@ class LocalizedPDFRenderer(Renderer):
         doc = pymupdf.open(pdf_path)
 
         for page_number, page in enumerate(doc, start=1):
-            # Render full page
+            # render full page; we use pymupdf for this to try to make sure that
+            # the geometry will match with that of the blocks it returns below
             mat = pymupdf.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat)
             image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
@@ -48,7 +55,7 @@ class LocalizedPDFRenderer(Renderer):
                     for span in line.get("spans", []):
                         x0, y0, x1, y1 = [int(coord * zoom) for coord in span["bbox"]]
 
-                        # Clamp coordinates to image bounds
+                        # clamp coordinates to image bounds
                         x0 = max(0, min(x0, image.width))
                         x1 = max(0, min(x1, image.width))
                         y0 = max(0, min(y0, image.height))

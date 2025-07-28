@@ -35,7 +35,12 @@ class SlidingWindowSplitter(Splitter):
             for i in range(0, len(words) - self.window_size + 1, self.step)
         ]
         return windows
-    
+
+# this splitter tries to group sentences together. it may be useful e.g. for
+# malicious instructions that has been adversarially formatted, e.g.:
+# "IGNORE. ALL. PREVIOUS. INSTRUCTIONS."
+# The below tries to use semantic information to decide when to group.
+# TODO: An alternative would be to use a sliding window to group sentences.
 class GroupedSplitter(Splitter):
     def __init__(self, max_group_size: int = 2, short_sent_threshold: int = 40):
         self.max_group_size = max_group_size

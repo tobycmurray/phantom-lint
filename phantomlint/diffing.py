@@ -25,9 +25,6 @@ class SemanticDiffer(Differ):
             similarities = util.pytorch_cos_sim(phrase_embedding, ocr_embeddings)
             max_score = similarities.max().item()
 
-            # Debug output
-            # print(f"Phrase: {phrase}\n  Max similarity: {max_score:.3f}")
-
             if max_score < self.threshold:
                 hidden.append(phrase)
 

@@ -7,7 +7,7 @@ import unicodedata
 import os
 
 def normalize_text(text: str) -> str:
-    # Remove ligatures and normalize whitespace
+    # remove ligatures and normalize whitespace
     text = unicodedata.normalize("NFKC", text)
     return re.sub(r"\s+", " ", text.strip())
 
@@ -23,14 +23,12 @@ ANALYSIS_RESULTS_FILE="analysis_results.txt"
 def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, splitter: Splitter, differ: Differ, analyzer: Analyzer, renderer: Renderer, dpi: int, threshold: float, bad_phrases: List[str]):
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Extract full text
     print("extracting full text from input file...")
     full_text = normalize_text(renderer.extract_text(input_path))
     with open(output_dir / FULL_TEXT_FILE, "w", encoding="utf-8") as f:
         f.write(full_text)
     print(f"full text saved in {output_dir / FULL_TEXT_FILE}")
     
-    # Extract OCR text
     print("rendering images from input file...")
     images = renderer.render_images(input_path, dpi)
     print("OCR extracting text from images...")
@@ -39,7 +37,6 @@ def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, sp
         f.write(ocr_text)
     print(f"OCR extracted text saved in {output_dir / OCR_TEXT_FILE}")
     
-    # Identify phrases present in full text but not OCR
     print("splitting full text...")
     full_phrases = list(splitter.split(full_text))
     print("splitting OCR text...")
@@ -50,7 +47,6 @@ def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, sp
         f.write("\n".join(hidden_phrases))
     print(f"hidden phrases saved in {output_dir / TEXT_DIFF_FILE}")
 
-    # Analyze hidden phrases
     print("analyzing hidden phrases...")
     flagged = analyzer.analyze(bad_phrases, hidden_phrases)
     with open(output_dir / ANALYSIS_RESULTS_FILE, "w", encoding="utf-8") as f:
@@ -58,7 +54,6 @@ def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, sp
             f.write(f"{phrase}\n")
     print(f"analysis results saved in {output_dir / ANALYSIS_RESULTS_FILE}")
     
-    # Final verdict
     verdict = "✅ Nothing detected."
     if flagged:
         verdict = f"❌ Suspicious phrases detected. See {output_dir / ANALYSIS_RESULTS_FILE}"

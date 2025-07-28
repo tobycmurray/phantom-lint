@@ -21,15 +21,17 @@ class LocalSemanticAnalyzer(Analyzer):
     def analyze(self, bad_phrases: List[str], phrases: List[str]) -> List[str]:
         known_embeddings = self.encoder.encode(bad_phrases, convert_to_tensor=True)
 
-        # Compute the median window size based on word count in known phrases
+        # when analysing each phrase, break it up into sub-phrases
+        # using a sliding window -- this helps to detect compound
+        # instructions that otherwise go undetected
+        #
+        # We set the window size to be the median of the word count
+        # of the bad phrases
         window_sizes = [len(p.split()) for p in bad_phrases]
         window_size = int(np.median(window_sizes))
         
         matches = []
         for i, phrase in enumerate(phrases):
-            #emb = self.encoder.encode(phrase, convert_to_tensor=True)
-            #scores = util.pytorch_cos_sim(emb, known_embeddings)
-
             sub_phrases = self.sliding_window_phrases(phrase, window_size)
             if len(sub_phrases) > 0:
                 sub_embeddings = self.encoder.encode(sub_phrases, convert_to_tensor=True)
@@ -40,7 +42,6 @@ class LocalSemanticAnalyzer(Analyzer):
                 score_val = max_val.item()
                 closest_phrase = bad_phrases[col]
 
-                # Debug output
                 #print(f"DEBUG Phrase: {phrase!r}")
                 #print(f"DEBUG   Closest match: {closest_phrase!r} (score={score_val:.3f})")
 
@@ -81,6 +82,7 @@ The following phrases are the ones you should review to see if any appear to be 
             if line.strip()
         ]
 
+# I currently cannot get llm-guard working on my machine
 # class LLMGuardAnalyzer(Analyzer):
 #     def __init__(self, threshold: float = 0.5):
 #         self.validator = InputValidator(scanners=[PromptInjection(min_score=threshold)])

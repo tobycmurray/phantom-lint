@@ -3,17 +3,22 @@ from pathlib import Path
 import pytesseract
 from typing import List
 from PIL import Image
-# imports for LayoutParserOCREngine
+# imports for LayoutParserOCREngine, currently unused
 #import layoutparser as lp
-# imports for OCRMyPDFEngine
+# imports for OCRMyPDFEngine, currently unused
 #import ocrmypdf
 #import pymupdf
 #import tempfile
-# imports for PaddleOCREngine
+# imports for PaddleOCREngine, currently unused
 #from paddleocr import PaddleOCR
 #import numpy as np
 #import cv2
 #import time
+
+class TesseractOCREngine(OCREngine):
+    def extract_text(self, images: List[Image.Image]) -> str:
+        return "\n".join(pytesseract.image_to_string(img, config='--psm 1 --oem 1') for img in images)
+
 
 # this seems to hang, unfortunately
 # class PaddleOCREngine(OCREngine):
@@ -25,25 +30,19 @@ from PIL import Image
 #         total = len(images)
 
 #         for i, image in enumerate(images, 1):
-#             print(f"[{time.strftime('%H:%M:%S')}] Processing page {i}/{total}...")
-
 #             try:
 #                 image_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-#                 print("Starting ocr...")
 #                 result = self.ocr.ocr(image_cv)
-#                 print("Done ocr")
 #                 if not result or not result[0]:
-#                     print(f"  ⚠️ No text found on page {i}")
 #                     continue
 
 #                 for line in result[0]:
 #                     text = line[1][0].strip()
 #                     all_text.append(text)
 
-#                 print(f"  ✅ Page {i} completed ({len(result[0])} lines)")
 
 #             except Exception as e:
-#                 print(f"  ❌ Failed on page {i}: {e}")
+#                 print(f"  OCR failed on page {i}: {e}")
 
 #         return "\n".join(all_text)
 
@@ -69,14 +68,10 @@ from PIL import Image
 #                 optimize=0 # disable all optimization passes, including jbig2
 #             )
 
-#             # Step 3: Extract text from OCR-enhanced PDF
+#             # extract text from OCR-enhanced PDF
 #             with pymupdf.open(ocr_pdf_path) as doc:
 #                 return "\n".join(page.get_text() for page in doc)
             
-class TesseractOCREngine(OCREngine):
-    def extract_text(self, images: List[Image.Image]) -> str:
-        return "\n".join(pytesseract.image_to_string(img, config='--psm 1 --oem 1') for img in images)
-
 # attempt to use LayoutParser to get better OCR, but I couldn't get the former working
 # class LayoutParserOCREngine(OCREngine): def __init__(self,
 #     ocr_config="--psm 6",
