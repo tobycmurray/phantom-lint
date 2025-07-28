@@ -52,11 +52,11 @@ obscure it).
 
 ## Examples
 
-Example test cases, which are all real papers obtained from [arXiv](https://arxiv.org/), are
+Example test cases, including real papers obtained from [arXiv](https://arxiv.org/), are
 in the `tests/` directory.
 
 Papers with unwanted hidden phrases are in the `tests/bad/` directory.
-Those papers were taken from the list that appears in
+Many of those papers were taken from the list that appears in
 https://arxiv.org/pdf/2507.06185, which is the paper
 "Hidden Prompts in Manuscripts Exploit AI-Assisted Peer Review".
 
@@ -74,13 +74,18 @@ rendering and OCR methods have trouble accurately determining the
 text layout for the page containing this table.
 
 2505.15075v1.pdf has benign prompts in the paper text, highlighting
-why just looking for prompts in papers is insufficient.
+why just looking for prompts in paper text is insufficient.
 
 2505.11718v1.pdf is even a paper about building an LLM-based automated
 peer reviewer!
 
-For 2406.17253v2.pdf, 2506.11111v1.pdf and 2505.16211v1.pdf we detect
+For 2406.17253v2.pdf, 2506.11111v1.pdf and 2505.16211v1.pdf we detect only
 one (of many) hidden LLM instructions in the paper, when using the `nlp`
 analysis method with the default bad phrases list. This shows the
 limitations of that analysis method and/or the default bad phrases
 list.
+
+The `tests/` directory also contains synthetic test cases, including for
+both single- and two-column documents, and utilising a range of strategies
+for hiding unwanted text in the documents. These all begin with `fake_`,
+to distinguish them from real examples.
