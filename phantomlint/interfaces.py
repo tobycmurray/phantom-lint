@@ -22,12 +22,18 @@ class Differ(ABC):
     @abstractmethod
     def find_hidden_phrases(self, full_phrases: List[str], ocr_phrases: List[str]) -> List[str]:
         pass
-    
-class Renderer(ABC):
+
+class RendererElement(ABC):
     @abstractmethod
-    def extract_text(self, path: Path) -> str:
+    def render_image(self, dpi: int) -> Image.Image:
         pass
 
     @abstractmethod
-    def render_images(self, path: Path, dpi: int) -> List[Image.Image]:
+    def get_text(self) -> str:
         pass
+    
+class Renderer(ABC):
+    @abstractmethod
+    def get_elements(self, path: Path) -> List[RendererElement]:
+        pass
+

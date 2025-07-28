@@ -14,53 +14,45 @@ def normalize_text(text: str) -> str:
     text = unicodedata.normalize("NFKC", text)
     return re.sub(r"\s+", " ", text.strip())
 
-def extract_pdf_text(pdf_path: Path) -> str:
-    with pymupdf.open(pdf_path) as doc:
-        return "\n".join(page.get_text() for page in doc)
-
-FULL_TEXT_FILE="full_text.txt"
-OCR_TEXT_FILE="ocr_text.txt"
-TEXT_DIFF_FILE="text_diff.txt"
-ANALYSIS_RESULTS_FILE="analysis_results.txt"
+SUSPICIOUS_PHRASES_FILE="suspicious_phrases.txt"
+HIDDEN_SUSPICIOUS_PHRASES_FILE="hidden_suspicious_phrases.txt"
 
 def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, splitter: Splitter, differ: Differ, analyzer: Analyzer, renderer: Renderer, dpi: int, threshold: float, bad_phrases: List[str]):
     output_dir.mkdir(parents=True, exist_ok=True)
 
     log = logging.getLogger(__name__)
 
-    log.info("extracting full text from input file...")
-    full_text = normalize_text(renderer.extract_text(input_path))
-    with open(output_dir / FULL_TEXT_FILE, "w", encoding="utf-8") as f:
-        f.write(full_text)
-    log.info(f"full text saved in {output_dir / FULL_TEXT_FILE}")
+    log.info("getting document elements...")
+    elements = renderer.get_elements(input_path)
+    suspicious_phrases = []
+    hidden_phrases = []
     
-    log.info("rendering images from input file...")
-    images = renderer.render_images(input_path, dpi)
-    log.info("OCR extracting text from images...")
-    ocr_text = normalize_text(ocr.extract_text(images))
-    with open(output_dir / OCR_TEXT_FILE, "w", encoding="utf-8") as f:
-        f.write(ocr_text)
-    log.info(f"OCR extracted text saved in {output_dir / OCR_TEXT_FILE}")
-    
-    log.info("splitting full text...")
-    full_phrases = list(splitter.split(full_text))
-    log.info("splitting OCR text...")
-    ocr_phrases = list(splitter.split(ocr_text))
-    log.info("identifying hidden phrases...")
-    hidden_phrases = differ.find_hidden_phrases(full_phrases, ocr_phrases)
-    with open(output_dir / TEXT_DIFF_FILE, "w", encoding="utf-8") as f:
+    for e in elements:
+        full_text = normalize_text(e.get_text())
+        full_text_phrases = list(splitter.split(full_text))
+        flagged = analyzer.analyze(bad_phrases, full_text_phrases)
+        suspicious_phrases += flagged
+        
+        for f in flagged:
+            log.info(f"suspicious phrase identified: {f}")
+            log.info(f"checking if it appears in the OCR...")
+            img = e.render_image(dpi)
+            ocr_text = normalize_text(ocr.extract_text([img]))
+            ocr_phrases = list(splitter.split(ocr_text))
+            hidden = differ.find_hidden_phrases([f], ocr_phrases)
+            hidden_phrases += hidden
+            
+    with open(output_dir / SUSPICIOUS_PHRASES_FILE, "w", encoding="utf-8") as f:
+        f.write("\n".join(suspicious_phrases))
+        
+    with open(output_dir / HIDDEN_SUSPICIOUS_PHRASES_FILE, "w", encoding="utf-8") as f:
         f.write("\n".join(hidden_phrases))
-    log.info(f"hidden phrases saved in {output_dir / TEXT_DIFF_FILE}")
-
-    log.info("analyzing hidden phrases...")
-    flagged = analyzer.analyze(bad_phrases, hidden_phrases)
-    with open(output_dir / ANALYSIS_RESULTS_FILE, "w", encoding="utf-8") as f:
-        for phrase in flagged:
-            f.write(f"{phrase}\n")
-    log.info(f"analysis results saved in {output_dir / ANALYSIS_RESULTS_FILE}")
     
     verdict = "✅ Nothing detected."
-    if flagged:
-        verdict = f"❌ Suspicious phrases detected. See {output_dir / ANALYSIS_RESULTS_FILE}"
+    if len(hidden_phrases) > 0:
+        verdict = f"❌ Hidden suspicious phrases detected. See {output_dir / HIDDEN_SUSPICIOUS_PHRASES_FILE}"
 
     print(verdict)
+
+    if len(suspicious_phrases) > 0:
+        print(f"  Suspicious, non-hidden phrases detected. See {output_dir / SUSPICIOUS_PHRASES_FILE}")

@@ -9,6 +9,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
+class PassthroughAnalyzer(Analyzer):
+    def analyze(self, bad_phrases: List[str], phrases: List[str]) -> List[str]:
+        return phrases
 
 class LocalSemanticAnalyzer(Analyzer):
     def __init__(self, threshold: float = 0.75):

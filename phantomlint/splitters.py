@@ -22,6 +22,10 @@ class RegexSplitter(Splitter):
     def split(self, text: str) -> List[str]:
         return re.split(r'(?<=[.!?])\s+', text)
 
+class NoopSplitter(Splitter):
+    def split(self, text: str) -> List[str]:
+        return [text]
+    
 class SpacySplitter(Splitter):
     def split(self, text: str) -> List[str]:
         doc = nlp(text)

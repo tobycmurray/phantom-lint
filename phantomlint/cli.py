@@ -1,7 +1,7 @@
 from phantomlint.detector import detect_hidden_phrases
 from phantomlint.ocr import TesseractOCREngine
-from phantomlint.splitters import RegexSplitter, SpacySplitter, GroupedSplitter, SlidingWindowSplitter
-from phantomlint.analyzers import LocalSemanticAnalyzer, OpenAIAnalyzer #, LLMGuardAnalyzer
+from phantomlint.splitters import RegexSplitter, SpacySplitter, GroupedSplitter, SlidingWindowSplitter, NoopSplitter
+from phantomlint.analyzers import LocalSemanticAnalyzer, OpenAIAnalyzer, PassthroughAnalyzer
 from phantomlint.diffing import ExactDiffer, SemanticDiffer
 from phantomlint.renderer import renderer_for, SUPPORTED_FILETYPES
 import argparse
@@ -50,10 +50,9 @@ def main():
     parser.add_argument("--bad-list", type=str, help="path to optional file containing known suspicious phrases")
     parser.add_argument("--dpi", type=int, default=DEFAULT_DPI, help=f"DPI for rendering document pages (default: {DEFAULT_DPI})")
     parser.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD, help=f"similarity threshold for phrase matching (default: {DEFAULT_THRESHOLD})")
-    parser.add_argument("--split", choices=["sliding", "regex", "spacy", "grouped"], default=DEFAULT_SPLIT, help=f"phrase splitting method (default: {DEFAULT_SPLIT})")
+    parser.add_argument("--split", choices=["sliding", "regex", "spacy", "grouped", "noop"], default=DEFAULT_SPLIT, help=f"phrase splitting method (default: {DEFAULT_SPLIT})")
     parser.add_argument("--diff", choices=["raw", "nlp"], default=DEFAULT_DIFF, help=f"diffing method to detect hidden phrases (default: {DEFAULT_DIFF})")
-    parser.add_argument("--analyze", choices=["nlp", "llm"], default=DEFAULT_ANALYZE, help=f"analysis method for detecting suspicious phrases (default: {DEFAULT_ANALYZE})")
-    parser.add_argument("--precise", action="store_true", help="enable precise mode, which is very slow (default: off)")
+    parser.add_argument("--analyze", choices=["nlp", "llm", "passthrough"], default=DEFAULT_ANALYZE, help=f"analysis method for detecting suspicious phrases (default: {DEFAULT_ANALYZE})")
     parser.add_argument('--verbose', '-v', action='store_true', help='enable verbose output')
     parser.add_argument('--log-file', type=str, help='optional path to log output to a file')
     
@@ -69,6 +68,8 @@ def main():
         splitter = GroupedSplitter()
     elif args.split == "spacy":
         splitter = SpacySplitter()
+    elif args.split == "noop":
+        splitter = NoopSplitter()
     else:
         # FIXME: add params here
         splitter = SlidingWindowSplitter()
@@ -86,6 +87,8 @@ def main():
     log.info(f"analyzer: {args.analyze}")
     if args.analyze=="llm":
         analyzer = OpenAIAnalyzer()
+    elif args.analyze=="passthrough":
+        analyzer = PassthroughAnalyzer()
     #elif args.analyze=="llm-guard":
     #    analyzer = LLMGuardAnalyzer()
     else:
@@ -101,7 +104,7 @@ def main():
     log.info(f"output directory: {args.output}")
 
     input_path=Path(args.input_path)
-    renderer=renderer_for(input_path, args.precise)
+    renderer=renderer_for(input_path)
     if renderer:
         detect_hidden_phrases(input_path, Path(args.output), ocr, splitter, differ, analyzer, renderer, args.dpi, args.threshold, bad_phrases)
     else:
