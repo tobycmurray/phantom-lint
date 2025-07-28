@@ -5,11 +5,15 @@ from typing import List
 from PIL import Image
 import pymupdf  # PyMuPDF
 from pdf2image import convert_from_path
+import logging
+
+log = logging.getLogger(__name__)
 
 SUPPORTED_FILETYPES=["pdf"]
 def renderer_for(path: Path, precise: bool = False) -> Renderer:
     if path.suffix.lower() == ".pdf":
         if precise:
+            log.info("using precise mode, which can be quite slow.")
             return LocalizedPDFRenderer()
         else:
             return PDFRenderer()

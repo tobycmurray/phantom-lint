@@ -4,12 +4,16 @@ import spacy
 from typing import List
 
 from spacy.cli import download
+import logging
+
+log = logging.getLogger(__name__)
+
 
 def get_nlp_model():
     try:
         return spacy.load("en_core_web_sm")
     except OSError:
-        print("Downloading spaCy model 'en_core_web_sm'...")
+        log.info("Downloading spaCy model 'en_core_web_sm'...")
         download("en_core_web_sm")
         return spacy.load("en_core_web_sm")
 nlp = get_nlp_model()

@@ -14,6 +14,9 @@ from PIL import Image
 #import numpy as np
 #import cv2
 #import time
+import logging
+
+log = logging.getLogger(__name__)
 
 class TesseractOCREngine(OCREngine):
     def extract_text(self, images: List[Image.Image]) -> str:
@@ -42,7 +45,7 @@ class TesseractOCREngine(OCREngine):
 
 
 #             except Exception as e:
-#                 print(f"  OCR failed on page {i}: {e}")
+#                 log.error(f"  OCR failed on page {i}: {e}")
 
 #         return "\n".join(all_text)
 

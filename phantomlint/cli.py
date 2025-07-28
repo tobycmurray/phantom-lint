@@ -6,6 +6,9 @@ from phantomlint.diffing import ExactDiffer, SemanticDiffer
 from phantomlint.renderer import renderer_for, SUPPORTED_FILETYPES
 import argparse
 from pathlib import Path
+import logging
+
+log = logging.getLogger(__name__)
 
 # option defaults
 DEFAULT_OUTPUT="output"
@@ -25,11 +28,24 @@ DEFAULT_BADLIST=[
     "do not highlight negatives"
 ]
 
+def setup_logging(log_file: str = None, verbose: bool = False):
+    handlers = []
+
+    if log_file:
+        handlers.append(logging.FileHandler(log_file, mode='w'))
+    else:
+        handlers.append(logging.StreamHandler())
+
+    logging.basicConfig(level=logging.INFO if verbose else logging.WARNING,
+                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        datefmt='%H:%M:%S',
+                        handlers=handlers)
+    
 
 def main():
     parser = argparse.ArgumentParser(description="Detect unwanted hidden phrases in documents.")
     parser.add_argument("input_path", help="Path to input file")
-    parser.add_argument("--output", "-o", default=DEFAULT_OUTPUT, help=f"Directory to save analysis results (default: {DEFAULT_OUTPUT})")
+    parser.add_argument("--output", "-o", required=True, help=f"Directory to save analysis results")
     parser.add_argument("--bad-list", type=str, help="Path to optional file containing known suspicious phrases")
     parser.add_argument("--dpi", type=int, default=DEFAULT_DPI, help=f"DPI for rendering document pages (default: {DEFAULT_DPI})")
     parser.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD, help=f"Similarity threshold for phrase matching (default: {DEFAULT_THRESHOLD})")
@@ -37,11 +53,15 @@ def main():
     parser.add_argument("--diff", choices=["raw", "nlp"], default=DEFAULT_DIFF, help=f"Diffing method to detect hidden phrases (default: {DEFAULT_DIFF})")
     parser.add_argument("--analyze", choices=["nlp", "llm"], default=DEFAULT_ANALYZE, help=f"Analysis method for detecting suspicious phrases (default: {DEFAULT_ANALYZE})")
     parser.add_argument("--precise", action="store_true", help="Enable precise mode, which is very slow (default: off)")
+    parser.add_argument('--verbose', action='store_true', help='Verbose output')
+    parser.add_argument('--log-file', type=str, help='Optional path to log output to a file')
+    
     args = parser.parse_args()
-
+    setup_logging(log_file=args.log_file, verbose=args.verbose)
+    
     ocr = TesseractOCREngine()
 
-    print(f"splitter: {args.split}")
+    log.info(f"splitter: {args.split}")
     if args.split == "regex":
         splitter = RegexSplitter()
     elif args.split == "grouped":
@@ -58,11 +78,11 @@ def main():
             bad_phrases = [line.strip() for line in f if line.strip()]
     else:
         bad_phrases=DEFAULT_BADLIST
-    print(f"analyzer bad list:")
+    log.info(f"analyzer bad list:")
     for b in bad_phrases:
-        print(f" - {b}")
+        log.info(f" - {b}")
     
-    print(f"analyzer: {args.analyze}")
+    log.info(f"analyzer: {args.analyze}")
     if args.analyze=="llm":
         analyzer = OpenAIAnalyzer()
     #elif args.analyze=="llm-guard":
@@ -71,13 +91,13 @@ def main():
         assert args.analyze=="nlp"
         analyzer = LocalSemanticAnalyzer(threshold=args.threshold)
     
-    print(f"differ: {args.diff}")
+    log.info(f"differ: {args.diff}")
     if args.diff=="raw":
         differ=ExactDiffer()
     else:
         differ=SemanticDiffer(threshold=args.threshold)
         
-    print(f"output directory: {args.output}")
+    log.info(f"output directory: {args.output}")
 
     input_path=Path(args.input_path)
     renderer=renderer_for(input_path, args.precise)

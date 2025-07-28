@@ -5,6 +5,10 @@ from sentence_transformers import SentenceTransformer, util
 #from llm_guard.validators import InputValidator
 from openai import OpenAI
 import numpy as np
+import logging
+
+log = logging.getLogger(__name__)
+
 
 class LocalSemanticAnalyzer(Analyzer):
     def __init__(self, threshold: float = 0.75):
@@ -42,8 +46,8 @@ class LocalSemanticAnalyzer(Analyzer):
                 score_val = max_val.item()
                 closest_phrase = bad_phrases[col]
 
-                #print(f"DEBUG Phrase: {phrase!r}")
-                #print(f"DEBUG   Closest match: {closest_phrase!r} (score={score_val:.3f})")
+                log.debug(f"Phrase: {phrase!r}")
+                log.debug(f"   Closest match: {closest_phrase!r} (score={score_val:.3f})")
 
                 if scores.max().item() >= self.threshold:
                     matches.append(phrases[i])

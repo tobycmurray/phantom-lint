@@ -5,6 +5,9 @@ import pymupdf  # PyMuPDF
 import re
 import unicodedata
 import os
+import logging
+
+log = logging.getLogger(__name__)
 
 def normalize_text(text: str) -> str:
     # remove ligatures and normalize whitespace
@@ -23,36 +26,38 @@ ANALYSIS_RESULTS_FILE="analysis_results.txt"
 def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, splitter: Splitter, differ: Differ, analyzer: Analyzer, renderer: Renderer, dpi: int, threshold: float, bad_phrases: List[str]):
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print("extracting full text from input file...")
+    log = logging.getLogger(__name__)
+
+    log.info("extracting full text from input file...")
     full_text = normalize_text(renderer.extract_text(input_path))
     with open(output_dir / FULL_TEXT_FILE, "w", encoding="utf-8") as f:
         f.write(full_text)
-    print(f"full text saved in {output_dir / FULL_TEXT_FILE}")
+    log.info(f"full text saved in {output_dir / FULL_TEXT_FILE}")
     
-    print("rendering images from input file...")
+    log.info("rendering images from input file...")
     images = renderer.render_images(input_path, dpi)
-    print("OCR extracting text from images...")
+    log.info("OCR extracting text from images...")
     ocr_text = normalize_text(ocr.extract_text(images))
     with open(output_dir / OCR_TEXT_FILE, "w", encoding="utf-8") as f:
         f.write(ocr_text)
-    print(f"OCR extracted text saved in {output_dir / OCR_TEXT_FILE}")
+    log.info(f"OCR extracted text saved in {output_dir / OCR_TEXT_FILE}")
     
-    print("splitting full text...")
+    log.info("splitting full text...")
     full_phrases = list(splitter.split(full_text))
-    print("splitting OCR text...")
+    log.info("splitting OCR text...")
     ocr_phrases = list(splitter.split(ocr_text))
-    print("identifying hidden phrases...")
+    log.info("identifying hidden phrases...")
     hidden_phrases = differ.find_hidden_phrases(full_phrases, ocr_phrases)
     with open(output_dir / TEXT_DIFF_FILE, "w", encoding="utf-8") as f:
         f.write("\n".join(hidden_phrases))
-    print(f"hidden phrases saved in {output_dir / TEXT_DIFF_FILE}")
+    log.info(f"hidden phrases saved in {output_dir / TEXT_DIFF_FILE}")
 
-    print("analyzing hidden phrases...")
+    log.info("analyzing hidden phrases...")
     flagged = analyzer.analyze(bad_phrases, hidden_phrases)
     with open(output_dir / ANALYSIS_RESULTS_FILE, "w", encoding="utf-8") as f:
         for phrase in flagged:
             f.write(f"{phrase}\n")
-    print(f"analysis results saved in {output_dir / ANALYSIS_RESULTS_FILE}")
+    log.info(f"analysis results saved in {output_dir / ANALYSIS_RESULTS_FILE}")
     
     verdict = "✅ Nothing detected."
     if flagged:
