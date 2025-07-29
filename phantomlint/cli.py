@@ -44,6 +44,9 @@ def setup_logging(log_file: str = None, verbose: bool = False):
     
 
 def main():
+    import os
+    os.environ["TOKENIZERS_PARALLELISM"] = "true"
+    
     parser = argparse.ArgumentParser(description="Detect unwanted hidden phrases in documents.")
     parser.add_argument("input_path", help="path to input file")
     parser.add_argument("--output", "-o", required=True, help=f"directory to save analysis results")
@@ -107,8 +110,8 @@ def main():
     log.info(f"output directory: {args.output}")
 
     input_path=Path(args.input_path)
-    renderer=renderer_for(input_path)
+    renderer=renderer_for(input_path, args.dpi)
     if renderer:
-        detect_hidden_phrases(input_path, Path(args.output), ocr, splitter, differ, analyzer, renderer, args.dpi, args.threshold, bad_phrases)
+        detect_hidden_phrases(input_path, Path(args.output), ocr, splitter, differ, analyzer, renderer, bad_phrases)
     else:
         print(f"Unsupported input file type. Supported types: {SUPPORTED_FILETYPES}")

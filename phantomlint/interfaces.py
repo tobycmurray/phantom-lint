@@ -25,7 +25,7 @@ class Differ(ABC):
 
 class RendererElement(ABC):
     @abstractmethod
-    def render_image(self, dpi: int) -> Image.Image:
+    def render_image(self) -> Image.Image:
         pass
 
     @abstractmethod
