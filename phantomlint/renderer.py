@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import List
 from PIL import Image
 import pymupdf  # PyMuPDF
-from pdf2image import convert_from_path
 import logging
 
 log = logging.getLogger(__name__)

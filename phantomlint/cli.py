@@ -44,6 +44,9 @@ def setup_logging(log_file: str = None, verbose: bool = False):
     
 
 def main():
+    # this seems safe since we ensure we don't interleave using the
+    # nlp models with doing OCR, which causes forking (but doesn't
+    # use the nlp models, where these tokenizers are used)
     import os
     os.environ["TOKENIZERS_PARALLELISM"] = "true"
     

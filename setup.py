@@ -14,11 +14,11 @@ setup(
     install_requires=[
         "spacy",
         "pytesseract",
-        "pdf2image",
         "PyMuPDF",  # maps to PyMuPDF
         "Pillow",
         "sentence-transformers",
-        "openai"
+        "openai",
+        "opencv-python"
     ],
     cmdclass={
         'install': CustomInstall,
