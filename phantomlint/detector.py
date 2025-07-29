@@ -25,7 +25,7 @@ def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, sp
     log.info("getting document elements...")
     elements = renderer.get_elements(input_path)
     suspicious_phrases = [] # a list of pairs (flagged,e), see below
-    hidden_phrases = []
+    hidden_phrases = [] # a list of pairs (hidden,e), see below
 
     log.info("running analysis to detect suspicious phrases...")
     # do all the analysis before running further pipeline stages
@@ -34,13 +34,13 @@ def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, sp
         full_text = normalize_text(e.get_text())
         full_text_phrases = list(splitter.split(full_text))
         flagged = analyzer.analyze(bad_phrases, full_text_phrases)
-        suspicious_phrases.append((flagged,e))
+        if flagged != []:
+            suspicious_phrases.append((flagged,e))
 
     with open(output_dir / SUSPICIOUS_PHRASES_FILE, "w", encoding="utf-8") as f:
         for (flagged,e) in suspicious_phrases:
-            if flagged != []:
-                f.write("\n".join(flagged))
-                f.write("\n")        
+            f.write("\n".join(flagged))
+            f.write("\n")        
 
     log.info("detecting hidden suspicious phrases with OCR...")
     for (flagged,e) in suspicious_phrases:
@@ -49,10 +49,21 @@ def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, sp
             ocr_text = normalize_text(ocr.extract_text([img]))
             ocr_phrases = list(splitter.split(ocr_text))
             hidden = differ.find_hidden_phrases([f], ocr_phrases)
-            hidden_phrases += hidden
+            if hidden != []:
+                hidden_phrases.append((hidden,e))
             
     with open(output_dir / HIDDEN_SUSPICIOUS_PHRASES_FILE, "w", encoding="utf-8") as f:
-        f.write("\n".join(hidden_phrases))
+        for (hidden,e) in hidden_phrases:
+            f.write(f"\
+Hidden suspicious phrases found on page {e.page_number} inside the following text\n\
+(not all of which might be hidden):\n---\n")
+            f.write(e.get_text())
+            f.write("\n---\n")
+            f.write(f"\
+The hidden suspicious sub-phrases detected in this block were the following\n\
+(however additional hidden text might also be present):\n---\n")
+            f.write("\n".join(hidden))
+            f.write("\n---\n\n")
     
     verdict = "✅ Nothing detected."
     if len(hidden_phrases) > 0:
