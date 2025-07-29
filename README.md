@@ -1,4 +1,4 @@
-# Phantom Lint
+# PhantomLint
 
 Detect unwanted, hidden text in PDF documents.
 
@@ -38,7 +38,7 @@ phantomlint input_file.pdf --output output_directory/
 
 Use the `-h` or `--help` options to get detailed usage information.
 
-## How does Phantom Lint work?
+## How does PhantomLint work?
 
 Essentially by comparing the text extracted from the document with
 that obtained by rendering the document as a set of images and OCRing
