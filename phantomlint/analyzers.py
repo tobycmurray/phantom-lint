@@ -46,6 +46,7 @@ class LocalSemanticAnalyzer(Analyzer):
             
                 max_val, max_idx = scores.view(-1).max(0)
                 row, col = divmod(max_idx.item(), scores.size(1))
+                matched_sub_phrase = sub_phrases[row]
                 score_val = max_val.item()
                 closest_phrase = bad_phrases[col]
 
@@ -53,7 +54,7 @@ class LocalSemanticAnalyzer(Analyzer):
                 log.debug(f"   Closest match: {closest_phrase!r} (score={score_val:.3f})")
 
                 if scores.max().item() >= self.threshold:
-                    matches.append(phrases[i])
+                    matches.append(matched_sub_phrase)
 
         return matches
 

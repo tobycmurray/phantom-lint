@@ -2,7 +2,7 @@ from phantomlint.detector import detect_hidden_phrases
 from phantomlint.ocr import TesseractOCREngine
 from phantomlint.splitters import RegexSplitter, SpacySplitter, GroupedSplitter, SlidingWindowSplitter, NoopSplitter
 from phantomlint.analyzers import LocalSemanticAnalyzer, OpenAIAnalyzer, PassthroughAnalyzer
-from phantomlint.diffing import ExactDiffer, SemanticDiffer
+from phantomlint.diffing import ExactDiffer, SemanticDiffer, WordDiffer
 from phantomlint.renderer import renderer_for, SUPPORTED_FILETYPES
 import argparse
 from pathlib import Path
@@ -14,8 +14,8 @@ log = logging.getLogger(__name__)
 DEFAULT_OUTPUT="output"
 DEFAULT_DPI=300
 DEFAULT_THRESHOLD=0.75
-DEFAULT_SPLIT="spacy"
-DEFAULT_DIFF="nlp"
+DEFAULT_SPLIT="noop"
+DEFAULT_DIFF="word"
 DEFAULT_ANALYZE="nlp"
 
 DEFAULT_BADLIST=[
@@ -34,7 +34,7 @@ def setup_logging(log_file: str = None, verbose: bool = False):
 
     if log_file:
         handlers.append(logging.FileHandler(log_file, mode='w'))
-    else:
+    if verbose:
         handlers.append(logging.StreamHandler())
 
     logging.basicConfig(level=logging.INFO if verbose else logging.WARNING,
@@ -51,7 +51,7 @@ def main():
     parser.add_argument("--dpi", type=int, default=DEFAULT_DPI, help=f"DPI for rendering document pages (default: {DEFAULT_DPI})")
     parser.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD, help=f"similarity threshold for phrase matching (default: {DEFAULT_THRESHOLD})")
     parser.add_argument("--split", choices=["sliding", "regex", "spacy", "grouped", "noop"], default=DEFAULT_SPLIT, help=f"phrase splitting method (default: {DEFAULT_SPLIT})")
-    parser.add_argument("--diff", choices=["raw", "nlp"], default=DEFAULT_DIFF, help=f"diffing method to detect hidden phrases (default: {DEFAULT_DIFF})")
+    parser.add_argument("--diff", choices=["raw", "nlp", "word"], default=DEFAULT_DIFF, help=f"diffing method to detect hidden phrases (default: {DEFAULT_DIFF})")
     parser.add_argument("--analyze", choices=["nlp", "llm", "passthrough"], default=DEFAULT_ANALYZE, help=f"analysis method for detecting suspicious phrases (default: {DEFAULT_ANALYZE})")
     parser.add_argument('--verbose', '-v', action='store_true', help='enable verbose output')
     parser.add_argument('--log-file', type=str, help='optional path to log output to a file')
@@ -98,7 +98,10 @@ def main():
     log.info(f"differ: {args.diff}")
     if args.diff=="raw":
         differ=ExactDiffer()
+    elif args.diff=="word":
+        differ=WordDiffer(threshold=args.threshold)
     else:
+        assert args.diff=="nlp"
         differ=SemanticDiffer(threshold=args.threshold)
         
     log.info(f"output directory: {args.output}")

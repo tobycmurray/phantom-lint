@@ -53,6 +53,4 @@ def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, sp
         verdict = f"❌ Hidden suspicious phrases detected. See {output_dir / HIDDEN_SUSPICIOUS_PHRASES_FILE}"
 
     print(verdict)
-
-    if len(suspicious_phrases) > 0:
-        print(f"  Suspicious, non-hidden phrases detected. See {output_dir / SUSPICIOUS_PHRASES_FILE}")
+    log.info(verdict)

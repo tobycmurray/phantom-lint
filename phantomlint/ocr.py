@@ -11,16 +11,71 @@ from PIL import Image
 #import tempfile
 # imports for PaddleOCREngine, currently unused
 #from paddleocr import PaddleOCR
-#import numpy as np
-#import cv2
 #import time
 import logging
 
 log = logging.getLogger(__name__)
 
+from PIL import Image
+import numpy as np
+import cv2
+
+# sometimes the OCR is *too* good and infers text that the human eye can't see
+# this attempts to avoid that
+def suppress_low_contrast_color(pil_image: Image.Image, threshold: float = 15) -> Image.Image:
+    """Suppress low-contrast regions in a color image (e.g., faint text on similar background).
+
+    Args:
+        pil_image: Input image as PIL.Image.Image.
+        threshold: Contrast threshold in LAB space (lower = more aggressive).
+
+    Returns:
+        A new PIL.Image.Image with low-contrast areas whitened.
+    """
+    # bail if image is invalid
+    if pil_image.width == 0 or pil_image.height == 0:
+        return pil_image
+
+    # Convert PIL image to OpenCV BGR
+    img = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+
+    # Convert to LAB color space (L = lightness)
+    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+    L, A, B = cv2.split(lab)
+
+    # Compute local contrast using Laplacian (edge detection on L channel)
+    contrast = cv2.Laplacian(L, cv2.CV_64F)
+    contrast_magnitude = np.abs(contrast)
+
+    # Create mask of low-contrast pixels
+    mask = (contrast_magnitude < threshold).astype(np.uint8) * 255
+
+    # Smooth mask to avoid harsh boundaries
+    mask_blur = cv2.GaussianBlur(mask, (7, 7), 0)
+    mask_norm = mask_blur.astype(np.float32) / 255.0
+
+    # Blend toward white (255,255,255) using mask
+    result = img.astype(np.float32)
+    for c in range(3):
+        result[..., c] = result[..., c] * (1 - mask_norm) + 255 * mask_norm
+
+    result = np.clip(result, 0, 255).astype(np.uint8)
+
+    # Convert back to PIL.Image
+    return Image.fromarray(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
+
 class TesseractOCREngine(OCREngine):
     def extract_text(self, images: List[Image.Image]) -> str:
-        return "\n".join(pytesseract.image_to_string(img, config='--psm 1 --oem 1') for img in images)
+        texts = []
+        for img in images:
+            try:
+                img = suppress_low_contrast_color(img)
+                text = pytesseract.image_to_string(img, config='--psm 1 --oem 1')
+                texts.append(text)
+            except Exception:
+                log.warning("Failed to OCR image. No text returned")
+                continue
+        return "\n".join(texts)
 
 
 # this seems to hang, unfortunately
