@@ -30,7 +30,9 @@ class LocalSemanticAnalyzer(Analyzer):
 
         # when analysing each phrase, break it up into sub-phrases
         # using a sliding window -- this helps to detect compound
-        # instructions that otherwise go undetected
+        # instructions that otherwise go undetected, and also to
+        # find instructions embedded inside text blocks that also
+        # contain legitimite, visible text
         #
         # We set the window size to be the median of the word count
         # of the bad phrases
@@ -54,6 +56,12 @@ class LocalSemanticAnalyzer(Analyzer):
                 log.debug(f"   Closest match: {closest_phrase!r} (score={score_val:.3f})")
 
                 if scores.max().item() >= self.threshold:
+                    # we return (only) the matched sub-phrase, since the phrase itself
+                    # could be very long (an entire page, even). if we return the entire
+                    # phrase, we would then be stuck trying to prove that
+                    # the entire phrase is hidden, when it might only be a small part
+                    # of it that is hidden. Indeed in some documents the hidden text
+                    # is returned within the same phrase as non-hidden text
                     matches.append(matched_sub_phrase)
 
         return matches
