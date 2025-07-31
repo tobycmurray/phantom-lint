@@ -66,7 +66,7 @@ If we then print out the first five lines of
 80 characters per line) we get:
 
 
-```bash
+```text
 $ head -5 output_dir/suspicious_phrases.txt | fold -w 80
 Suspicious phrases found on page 1 inside the following text
 (additional suspicious text may also be present, but not highlighted):
@@ -115,7 +115,7 @@ $ phantomlint tests/bad/2212.08983v2.pdf --output output_dir
 
 The contents of `output_dir/suspicious_phrases.txt` is then:
 
-```bash
+```text
 $ cat output_dir/suspicious_phrases.txt | fold -w 80
 Suspicious phrases found on page 1 inside the following text
 (additional suspicious text may also be present, but not highlighted):
@@ -149,7 +149,7 @@ Notice how the highlighting covers text that doesn't appear to be part of the pr
 examine  `output_dir/hidden_suspicious_phrases.txt` we see that only text confirmed to be
 hidden is highlighted. In this case, that covers the entire hidden prompt.
 
-```bash
+```text
 $ cat output_dir/hidden_suspicious_phrases.txt | fold -w 80
 Hidden suspicious phrases found on page 1 inside the following text
 (additional hidden text may also be present, but not highlighted):
