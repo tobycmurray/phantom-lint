@@ -42,8 +42,11 @@ def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, sp
         for (flagged,e) in suspicious_phrases:
             for str_span in flagged:
                 (text,spans) = str_span
+                f.write(f"\
+Suspicious phrases found on page {e.page_number} inside the following text\n\
+(additional suspicious text may also be present, but not highlighted):\n---\n")                
                 f.write(color_highlight_spans(text,spans))
-                f.write("\n\n")
+                f.write("\n---\n\n")
 
     log.info("detecting hidden suspicious phrases with OCR...")
     for (flagged,e) in suspicious_phrases:
