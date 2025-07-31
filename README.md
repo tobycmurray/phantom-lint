@@ -216,13 +216,15 @@ instruction.
 
 The `tests/bad/` directory contains other PDFs found via Google that
 contain hidden text, designed to manipulate LLM analysis. This
-includes candidate CVs posted publicly online.
+includes candidate CVs posted publicly online, as well as a thesis,
+university paper, etc.
 
 ### `good` examples
 
 Test cases without unwanted hidden phrases are in the `tests/good/` directory.
 This includes the aforementioned
-https://arxiv.org/pdf/2507.06185, as well as some synthetic examples.
+https://arxiv.org/pdf/2507.06185, plus some CVs that contain non-hidden
+LLM prompts, as well as some synthetic examples.
 
 ### synthetic examples
 
