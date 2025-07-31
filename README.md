@@ -209,11 +209,10 @@ why just looking for prompts in paper text is insufficient.
 2505.11718v1.pdf is even a paper about building an LLM-based automated
 peer reviewer!
 
-For 2406.17253v2.pdf, 2506.11111v1.pdf and 2505.16211v1.pdf we detect only
-one (of many) hidden LLM instructions in the paper, when using the `nlp`
-analysis method with the default bad phrases list. This shows the
-limitations of that analysis method and/or the default bad phrases
-list.
+2406.17253v2.pdf, 2506.11111v1.pdf and 2505.16211v1.pdf contain
+a very long hidden instruction. Due to the way that the current
+diffing method works, we highlight most (but not all) of the hidden
+instruction. 
 
 The `tests/bad/` directory contains other PDFs found via Google that
 contain hidden text, designed to manipulate LLM analysis. This
