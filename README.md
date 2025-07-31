@@ -226,7 +226,7 @@ https://arxiv.org/pdf/2507.06185, as well as some synthetic examples.
 
 ### synthetic examples
 
-The `tests/` directory also contains synthetic test cases (both `good` and `bad),
+The `tests/` directory also contains synthetic test cases (both `good` and `bad`),
 including for
 both single- and two-column documents, and utilising a range of strategies
 for hiding unwanted text in the documents. These all begin with `fake_`,
