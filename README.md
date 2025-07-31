@@ -24,7 +24,7 @@ pip install -r requirements.txt
 
 ### Install Package
 
-```
+```bash
 pip install -e .
 ```
 
@@ -64,7 +64,7 @@ $ phantomlint tests/good/2507.06185v1.pdf --output output_dir
 If we then open `output_dir/suspicious_phrases.txt` it begins
 with:
 
-```text
+```
 Suspicious phrases found on page 1 inside the following text
 (additional suspicious text may also be present, but not highlighted):
 ---
@@ -85,7 +85,7 @@ $ phantomlint tests/bad/2212.08983v2.pdf --output output_dir
 
 The contents of `output_dir/suspicious_phrases.txt` is then:
 
-```text
+```
 Suspicious phrases found on page 1 inside the following text
 (additional suspicious text may also be present, but not highlighted):
 ---
