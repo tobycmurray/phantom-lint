@@ -57,7 +57,7 @@ def main():
     parser.add_argument("--dpi", type=int, default=DEFAULT_DPI, help=f"DPI for rendering document pages (default: {DEFAULT_DPI})")
     parser.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD, help=f"similarity threshold for phrase matching (default: {DEFAULT_THRESHOLD})")
     parser.add_argument("--split", choices=["sliding", "regex", "spacy", "grouped", "noop"], default=DEFAULT_SPLIT, help=f"phrase splitting method (default: {DEFAULT_SPLIT})")
-    parser.add_argument("--diff", choices=["raw", "nlp", "word"], default=DEFAULT_DIFF, help=f"diffing method to detect hidden phrases (default: {DEFAULT_DIFF})")
+    parser.add_argument("--diff", choices=["raw", "nlp", "word", "word_exact"], default=DEFAULT_DIFF, help=f"diffing method to detect hidden phrases (default: {DEFAULT_DIFF})")
     parser.add_argument("--analyze", choices=["nlp", "llm", "passthrough"], default=DEFAULT_ANALYZE, help=f"analysis method for detecting suspicious phrases (default: {DEFAULT_ANALYZE})")
     parser.add_argument('--verbose', '-v', action='store_true', help='enable verbose output')
     parser.add_argument('--log-file', type=str, help='optional path to log output to a file')
@@ -106,6 +106,8 @@ def main():
         differ=ExactDiffer()
     elif args.diff=="word":
         differ=WordDiffer(threshold=args.threshold)
+    elif args.diff=="word_exact":
+        differ=WordDiffer(threshold=1.0)
     else:
         assert args.diff=="nlp"
         differ=SemanticDiffer(threshold=args.threshold)

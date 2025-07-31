@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 from PIL import Image
+from phantomlint.word_spans import Span
 
 class OCREngine(ABC):
     @abstractmethod
@@ -15,12 +16,12 @@ class Splitter(ABC):
 
 class Analyzer(ABC):
     @abstractmethod
-    def analyze(self, bad_phrases: List[str], phrases: List[str]) -> List[str]:
+    def analyze(self, bad_phrases: List[str], phrases: List[str]) -> List[Tuple[str, List[Span]]]:
         pass
 
 class Differ(ABC):
     @abstractmethod
-    def find_hidden_phrases(self, full_phrases: List[str], ocr_phrases: List[str]) -> List[str]:
+    def find_hidden_spans(self, full_phrase: str, spans: List[Span], ocr_phrases: List[str]) -> List[Span]:
         pass
 
 class RendererElement(ABC):

@@ -1,4 +1,5 @@
 from phantomlint.interfaces import OCREngine, Splitter, Analyzer, Differ, Renderer
+from phantomlint.word_spans import Span, color_highlight_spans
 from pathlib import Path
 from typing import List
 import pymupdf  # PyMuPDF
@@ -24,7 +25,7 @@ def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, sp
 
     log.info("getting document elements...")
     elements = renderer.get_elements(input_path)
-    suspicious_phrases = [] # a list of pairs (flagged,e), see below
+    suspicious_phrases = [] # a list of pairs (full_phrase, spans)
     hidden_phrases = [] # a list of pairs (hidden,e), see below
 
     log.info("running analysis to detect suspicious phrases...")
@@ -34,35 +35,37 @@ def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, sp
         full_text = normalize_text(e.get_text())
         full_text_phrases = list(splitter.split(full_text))
         flagged = analyzer.analyze(bad_phrases, full_text_phrases)
-        if flagged != []:
+        if flagged:
             suspicious_phrases.append((flagged,e))
 
     with open(output_dir / SUSPICIOUS_PHRASES_FILE, "w", encoding="utf-8") as f:
         for (flagged,e) in suspicious_phrases:
-            f.write("\n".join(flagged))
-            f.write("\n")        
+            for str_span in flagged:
+                (text,spans) = str_span
+                f.write(color_highlight_spans(text,spans))
+                f.write("\n\n")
 
     log.info("detecting hidden suspicious phrases with OCR...")
     for (flagged,e) in suspicious_phrases:
-        for f in flagged:
+        confirmed_hidden = []        
+        for (f,spans) in flagged:
             img = e.render_image()
             ocr_text = normalize_text(ocr.extract_text([img]))
             ocr_phrases = list(splitter.split(ocr_text))
-            hidden = differ.find_hidden_phrases([f], ocr_phrases)
-            if hidden != []:
-                hidden_phrases.append((hidden,e))
+            hidden_spans = differ.find_hidden_spans(f, spans, ocr_phrases)            
+            if hidden_spans:
+                confirmed_hidden.append((hidden_spans,f))
+
+        if confirmed_hidden:
+            hidden_phrases.append((confirmed_hidden,e))
             
     with open(output_dir / HIDDEN_SUSPICIOUS_PHRASES_FILE, "w", encoding="utf-8") as f:
         for (hidden,e) in hidden_phrases:
-            f.write(f"\
+            for (hidden_spans,text) in hidden:
+                f.write(f"\
 Hidden suspicious phrases found on page {e.page_number} inside the following text\n\
-(not all of which might be hidden):\n---\n")
-            f.write(e.get_text())
-            f.write("\n---\n")
-            f.write(f"\
-The hidden suspicious sub-phrases detected in this block were the following\n\
-(however additional hidden text might also be present):\n---\n")
-            f.write("\n".join(hidden))
+(additional hidden text may also be present, but not highlighted):\n---\n")
+            f.write(color_highlight_spans(text,hidden_spans))
             f.write("\n---\n\n")
     
     verdict = "✅ Nothing detected."

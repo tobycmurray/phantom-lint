@@ -1,5 +1,6 @@
 from phantomlint.interfaces import Analyzer
-from typing import List
+from phantomlint.word_spans import extract_and_merge_spans, Span
+from typing import List, Tuple
 from sentence_transformers import SentenceTransformer, util
 #from llm_guard.input_scanners import PromptInjection
 #from llm_guard.validators import InputValidator
@@ -10,22 +11,18 @@ import logging
 log = logging.getLogger(__name__)
 
 class PassthroughAnalyzer(Analyzer):
-    def analyze(self, bad_phrases: List[str], phrases: List[str]) -> List[str]:
-        return phrases
+    def analyze(self, bad_phrases: List[str], phrases: List[str]) -> List[Tuple[str, List[Span]]]:
+        ans = []
+        for phrase in phrases:
+            ans.append(phrase,[Span(start=0,end=len(phrase),text=phrase)])
+        return ans
 
 class LocalSemanticAnalyzer(Analyzer):
     def __init__(self, threshold: float = 0.75):
         self.encoder = SentenceTransformer("all-MiniLM-L6-v2")
         self.threshold = threshold
 
-    def sliding_window_phrases(self, phrase: str, window_size: int) -> List[str]:
-        words = phrase.split()
-        return [
-            " ".join(words[i:i+window_size])
-            for i in range(len(words) - window_size + 1)
-        ]
-        
-    def analyze(self, bad_phrases: List[str], phrases: List[str]) -> List[str]:
+    def analyze(self, bad_phrases: List[str], phrases: List[str]) -> List[Tuple[str, List[Span]]]:
         known_embeddings = self.encoder.encode(bad_phrases, convert_to_tensor=True)
 
         # when analysing each phrase, break it up into sub-phrases
@@ -34,36 +31,37 @@ class LocalSemanticAnalyzer(Analyzer):
         # find instructions embedded inside text blocks that also
         # contain legitimite, visible text
         #
-        # We set the window size to be the median of the word count
-        # of the bad phrases
+        # We set the minimum and maximum window sizes to be the
+        # min and max of the word counts of the bad phrases
         window_sizes = [len(p.split()) for p in bad_phrases]
-        window_size = int(np.median(window_sizes))
-        
+        min_window_size = min(window_sizes)
+        max_window_size = max(window_sizes)        
+
+        def checker(spans: List[Span]) -> List[Span]:
+            if not spans:
+                return []
+
+            texts = [span.text for span in spans]
+            span_embeddings = self.encoder.encode(texts, convert_to_tensor=True)
+
+            # Compute cosine similarities
+            similarity_matrix = util.cos_sim(span_embeddings, known_embeddings)  # [num_spans, num_known_phrases]
+
+            # Determine which spans match at least one known phrase
+            matches = []
+            for i, span in enumerate(spans):
+                max_score = similarity_matrix[i].max().item()
+                if max_score >= self.threshold:
+                    matches.append(span)
+
+            return matches
+
         matches = []
-        for i, phrase in enumerate(phrases):
-            sub_phrases = self.sliding_window_phrases(phrase, window_size)
-            if len(sub_phrases) > 0:
-                sub_embeddings = self.encoder.encode(sub_phrases, convert_to_tensor=True)
-                scores = util.cos_sim(sub_embeddings, known_embeddings)
+        for phrase in phrases:
+            matched = extract_and_merge_spans(phrase, min_window_size, max_window_size, checker)
+            if matched:
+                matches.append((phrase,matched))
             
-                max_val, max_idx = scores.view(-1).max(0)
-                row, col = divmod(max_idx.item(), scores.size(1))
-                matched_sub_phrase = sub_phrases[row]
-                score_val = max_val.item()
-                closest_phrase = bad_phrases[col]
-
-                log.debug(f"Phrase: {phrase!r}")
-                log.debug(f"   Closest match: {closest_phrase!r} (score={score_val:.3f})")
-
-                if scores.max().item() >= self.threshold:
-                    # we return (only) the matched sub-phrase, since the phrase itself
-                    # could be very long (an entire page, even). if we return the entire
-                    # phrase, we would then be stuck trying to prove that
-                    # the entire phrase is hidden, when it might only be a small part
-                    # of it that is hidden. Indeed in some documents the hidden text
-                    # is returned within the same phrase as non-hidden text
-                    matches.append(matched_sub_phrase)
-
         return matches
 
 class OpenAIAnalyzer(Analyzer):
