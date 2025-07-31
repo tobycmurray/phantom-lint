@@ -68,8 +68,8 @@ Suspicious phrases found on page {e.page_number} inside the following text\n\
                 f.write(f"\
 Hidden suspicious phrases found on page {e.page_number} inside the following text\n\
 (additional hidden text may also be present, but not highlighted):\n---\n")
-            f.write(color_highlight_spans(text,hidden_spans))
-            f.write("\n---\n\n")
+                f.write(color_highlight_spans(text,hidden_spans))
+                f.write("\n---\n\n")
     
     verdict = "✅ Nothing detected."
     if len(hidden_phrases) > 0:
