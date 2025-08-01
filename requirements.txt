@@ -3,6 +3,5 @@ pytesseract
 PyMuPDF
 Pillow
 sentence-transformers
-openai
 opencv-python
 

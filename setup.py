@@ -17,7 +17,6 @@ setup(
         "PyMuPDF",  # maps to PyMuPDF
         "Pillow",
         "sentence-transformers",
-        "openai",
         "opencv-python"
     ],
     cmdclass={

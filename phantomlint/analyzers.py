@@ -4,8 +4,6 @@ from typing import List, Tuple
 from sentence_transformers import SentenceTransformer, util
 #from llm_guard.input_scanners import PromptInjection
 #from llm_guard.validators import InputValidator
-from openai import OpenAI
-import numpy as np
 import logging
 
 log = logging.getLogger(__name__)
