@@ -18,13 +18,19 @@ STOPWORDS = {
 def filter_stopwords(words: List[str]) -> List[str]:
     return [w for w in words if w.lower() not in STOPWORDS]
 
+APOSTROPHES = ["'", "’", "‘", "`", "´"]
+
 class WordDiffer(Differ):
     def __init__(self, threshold: float = 0.75):
         self.threshold = threshold
 
     # extract all words from some text
     def extract_words(self, text):
-        return re.findall(r'\b\w+\b', text)
+        # Extract words including contractions
+        words = re.findall(r"\b\w+(?:['’‘`´]\w+)*\b", text)
+        # Remove all apostrophe variants from words
+        cleaned = [re.sub(r"['’‘`´]", "", word) for word in words]
+        return cleaned
 
     # compute the proportion of words in list1 that are present in list2
     def proportion_in_common(self, list1, list2):
@@ -52,7 +58,12 @@ class WordDiffer(Differ):
             hidden = []
             for i,span in enumerate(spans):
                 text=texts[i]
-                span_words = self.extract_words(text)
+                span_words = filter_stopwords(self.extract_words(text))
+
+                # ignore spans that contain only stopwords
+                if not span_words:
+                    continue
+
                 scores=[]
                 for ocr in ocr_phrases:
                     ocr_words = filter_stopwords(self.extract_words(ocr))
@@ -60,6 +71,7 @@ class WordDiffer(Differ):
                     scores.append(prop)
                 max_score = max(scores)
                 if max_score <= 1.0-self.threshold:
+                    log.info(f"keeping this span: {span_words}")
                     hidden.append(span)
             return hidden
 

@@ -39,6 +39,14 @@ def highlight_unicode(word: str) -> str:
 
 
 
+def get_words(text: str) -> List[str]:
+    tokens = text.split()
+    return tokens
+    #words = []
+    #for token in tokens:
+    #    words.extend([p for p in re.split(r'(\W)', token) if p])
+    #return words
+    
 def color_highlight_spans(text: str, spans: List[Span]) -> str:
     """
     Highlights multiple Span objects in a string using ANSI background colors.
@@ -47,7 +55,7 @@ def color_highlight_spans(text: str, spans: List[Span]) -> str:
         text: The input string
         spans: A list of Span objects (with word-based start/end indices)
     """
-    words = text.split()
+    words = get_words(text)
     num_words = len(words)
 
     # Build word-level highlight flags
@@ -65,9 +73,6 @@ def color_highlight_spans(text: str, spans: List[Span]) -> str:
 
     return " ".join(highlighted_words)
 
-# FIXME: duplicated in diffing.py
-def extract_words(text):
-    return re.findall(r'\b\w+\b', text)
 
 def extract_and_merge_spans(
     text: str,
@@ -75,8 +80,8 @@ def extract_and_merge_spans(
     max_window: int,
     checker: Callable[[List[Span]], List[Span]]
 ) -> List[Span]:
-    #words = text.split()
-    words = extract_words(text)
+    words = get_words(text)
+    
     all_spans: List[Span] = []
 
     for window_size in range(min_window, max_window + 1):

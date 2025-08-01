@@ -28,6 +28,7 @@ class PDFRendererElement(RendererElement):
         for line in self.block.get("lines", []):
             for span in line.get("spans", []):
                 block_text += span["text"]
+                block_text += " "
             block_text += "\n"
         return block_text
         
