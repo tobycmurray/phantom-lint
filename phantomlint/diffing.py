@@ -71,7 +71,6 @@ class WordDiffer(Differ):
                     scores.append(prop)
                 max_score = max(scores)
                 if max_score <= 1.0-self.threshold:
-                    log.info(f"keeping this span: {span_words}")
                     hidden.append(span)
             return hidden
 

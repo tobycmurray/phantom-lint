@@ -4,6 +4,7 @@ from typing import List, Tuple
 from sentence_transformers import SentenceTransformer, util
 #from llm_guard.input_scanners import PromptInjection
 #from llm_guard.validators import InputValidator
+import re
 import logging
 
 log = logging.getLogger(__name__)
@@ -20,6 +21,9 @@ class LocalSemanticAnalyzer(Analyzer):
         self.encoder = SentenceTransformer("all-MiniLM-L6-v2")
         self.threshold = threshold
 
+    def filter_text(self, text):
+        return ''.join(c for c in text if c.isalpha() or c.isspace())
+    
     def analyze(self, bad_phrases: List[str], phrases: List[str]) -> List[Tuple[str, List[Span]]]:
         known_embeddings = self.encoder.encode(bad_phrases, convert_to_tensor=True)
 
@@ -39,7 +43,7 @@ class LocalSemanticAnalyzer(Analyzer):
             if not spans:
                 return []
 
-            texts = [span.text for span in spans]
+            texts = [self.filter_text(span.text) for span in spans]
             span_embeddings = self.encoder.encode(texts, convert_to_tensor=True)
 
             # Compute cosine similarities
