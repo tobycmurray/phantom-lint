@@ -1,0 +1,30 @@
+.icon > svg {
+    display: inline-block;
+    height: 16px;
+    vertical-align: middle;
+    width: 16px;
+}
+
+.post-meta {
+    color: #bbb;
+    font-size: 85%;
+}
+
+.post-list > li {
+    margin-top: 1em;
+}
+
+.post-list > li > h2 {
+    margin-top: 0;
+}
+
+blockquote {
+    border-left: 2px solid #999;
+    padding: 0.25em 1em;
+}
+
+
+@view-transition {
+  navigation: auto;
+}
+

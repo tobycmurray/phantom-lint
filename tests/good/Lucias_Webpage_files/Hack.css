@@ -1,0 +1,45 @@
+/*
+ * Hack by Source Foundry Authors - https://sourcefoundry.org/hack/
+ * License: MIT
+ */
+
+@font-face {
+    font-family: 'Hack';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('Hack'),
+         url('woff2/Hack Regular.woff2') format('woff2'),
+         url('woff/Hack Regular.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Hack';
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: local('Hack'),
+         url('woff2/Hack Italic.woff2') format('woff2'),
+         url('woff/Hack Italic.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Hack';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: local('Hack'),
+         url('woff2/Hack Bold.woff2') format('woff2'),
+         url('woff/Hack Bold.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Hack';
+    font-style: italic;
+    font-weight: 700;
+    font-display: swap;
+    src: local('Hack'),
+         url('woff2/Hack Bold Italic.woff2') format('woff2'),
+         url('woff/Hack Bold Italic.woff') format('woff');
+}
+

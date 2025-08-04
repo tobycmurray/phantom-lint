@@ -1,0 +1,423 @@
+:root{
+    --main: #00b800; /* text with  this color on a black or "contrast-bg" background has a contrast rating of at least 7, which makes it compliant with WCAG guidelines AAA standard */
+    --contrast-bg: #001000;
+}
+
+html{
+    background-color: black;
+    background-image: url("assets/img/bg.png");
+    background-repeat: repeat;
+    background-attachment: fixed;
+}
+
+body{
+    margin: 0 auto;
+    font-size: 16px;
+    font-family: "Hack", monospace;
+    color: var(--main);
+    max-width: 1000px;
+    border-left: var(--main) 3px solid;
+    border-right: var(--main) 3px solid;
+    background: black;
+    min-height: 100vh;
+    box-shadow: 0 0 100px 80px black;
+}
+
+a{
+    color: var(--main);
+}
+
+header{
+    font-size: 1.125em;
+    white-space: pre;
+}
+
+
+header, footer, .heading{
+    text-align: center;
+}
+
+pre{
+    margin: 0;
+}
+
+.ascii-art{
+    white-space: pre;
+    text-align: center;
+}
+
+.site-head{
+    margin-bottom: 1em;
+}
+
+.centered{
+    width: 100%;
+    display: inline-block;
+    text-align: center;
+}
+
+h1, .horizontal_divider{
+    font-size: 1.2em;
+    text-align: center;
+}
+
+h2{
+    font-size: 1.1em;
+}
+
+.additional_spacer{
+    display: inline-block;
+}
+
+nav{
+    font-size: 1.1em;
+}
+
+ul>li{
+    list-style: square;
+}
+
+.links-nav{
+    display: flex;
+    flex-direction: row;
+    row-gap: 0;
+    padding: 0 10px;
+}
+
+.links-nav>span>a{
+    text-decoration: none;
+    white-space: pre;
+}
+
+.links-nav>span>a:hover{
+    color: #000000;
+    background-color: var(--main);
+}
+
+a.highlight{
+    color: #000000;
+    background-color: var(--main);
+    text-decoration: none;
+}
+
+.projects-grid{
+    display: grid;
+    grid-template-columns: auto auto;
+}
+
+.socials-grid{
+    margin-left: 5px;
+    display: grid;
+    grid-template-columns: 33% 33.5% 33%;
+}
+
+.project{
+    min-height: 180px;
+}
+
+.project, .social, .question, .three-gallery>figure>figcaption{
+    padding: 5px;
+    background: var(--contrast-bg);
+}
+
+.social, .question, .answer{
+    margin: 5px 5px;
+}
+
+.project, .flowing-text, .legalnotice{
+    margin: 10px;
+}
+
+.buttons-88x31{
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 0 10px;
+    overflow: hidden;
+}
+
+footer{
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-row{
+    white-space: pre;
+    line-height: 2em;
+}
+
+/* blog-specific */
+
+.overview{
+    display: flex;
+    margin: 0 10px;
+}
+
+.entries{
+    min-width: 70%;
+}
+
+.tags{
+    background: var(--contrast-bg);
+    flex-grow: 1;
+    min-width: 20%;
+    height: fit-content;
+    padding: 0 5px;
+}
+
+.three-gallery{
+    display: flex;
+    gap: 5%;
+    justify-content: center;
+    align-items: center;
+}
+
+.three-gallery>figure{
+    margin:0;
+    background: var(--contrast-bg);
+    max-width: 27.5%;
+}
+
+.three-gallery>figure>img{
+    width: 100%;
+}
+
+#author_date, #blog-body, #tags, .overview-backlink{
+    margin: 10px;
+}
+
+/* FAQ-specific */
+
+.question{
+    display: block;
+    font-weight: bold;
+}
+
+.answer{
+    padding: 3px 5px;
+}
+
+.split>.answer{
+    background: var(--contrast-bg);
+}
+
+.split{
+    display: grid;
+    grid-template-columns: auto auto;
+}
+
+/* Licenses-specific */
+
+.license-table{
+    margin: 0 auto;
+    min-width: 395px;
+    width: 95%;
+}
+
+.license-head{
+    background: var(--contrast-bg);
+    text-align: left;
+}
+
+.license-head>tr>th, .license-body>tr>td{
+    padding: 5px 3px;
+}
+
+.project-column, .by-column{
+    width: 25%;
+}
+
+.license-column{
+    width: 10%;
+}
+
+@media (max-width:440px){
+    .notes-column, .license-notes{
+        display:none;
+    }
+}
+
+/* Links-specific */
+
+.buttons-88x31>a{
+    text-decoration: none;
+}
+
+.single-button-88x31{
+    margin-left: 10px;
+}
+
+.buttons-88x31>a>img, .buttons-88x31>img, .single-button-88x31{
+    display: inline-block;
+    width: 88px;
+    height: 31px;
+    line-height: 31px;
+    image-rendering: pixelated;
+    text-align: center;
+    background: var(--contrast-bg)
+}
+
+/* Text-/ASCII-Art formating */
+
+.flags{
+    font-size: 0.5em;
+    line-height: 1;
+    white-space: pre;
+}
+
+.no-underline{
+    text-decoration: none;
+}
+
+.no-top-margin{
+    margin-top: 0;
+    padding-top: 5px;
+}
+
+.no-overflow{
+    overflow: hidden;
+    vertical-align: top;
+}
+
+.flex-row{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.smol{
+    font-size: 0.5em;
+}
+
+/* Colors */
+
+.blue{
+    color: lightblue;
+}
+
+.lightpink{
+    color: pink;
+}
+
+.white{
+    color: white;
+}
+
+.pink{
+    color: #D60270;
+}
+
+.purple{
+    color: #734F96;
+}
+
+.darkblue{
+    color: #0038A8;
+}
+
+.violet{
+    color: #46005F;
+}
+
+/* Responsive Design */
+
+@media (min-width: 1001px){
+    .spacer::before{
+        content: "================================="
+        /* 33 symbols */
+    }
+    /* The following a terrible fix to a problem that could be fixed otherwise, but I currently can't be bothered to do so */ 
+    .smaller-spacer::before{
+        content: "============================"
+        /* 28 symbols */
+    }
+    
+}
+
+
+@media (max-width: 1000px) and (min-width: 610px){
+    .spacer::before{
+        content: "================";
+        /* 16 symbols */
+    }
+    .smaller-spacer::before{
+        content: "==========="
+        /* 11 symbols */
+    }
+    .socials-grid{
+        grid-template-columns: auto auto;
+    }
+}
+
+@media (max-width: 609px){
+    .additional-spacer{
+        display:none;
+    }
+    .projects-grid{
+        grid-template-columns: auto;
+    }
+    .socials-grid{
+        grid-template-columns: auto;
+    }
+}
+
+@media (max-width: 1000px){
+    header{
+        font-size: 1.8vw;
+    }
+}
+
+@media (max-width: 800px){
+    .vertical-divider-footer{
+        display: none;
+    }
+        
+    .footer-row{
+        display: flex;
+        flex-direction: column;
+        white-space: collapse;
+    }
+    
+    .three-gallery{
+        flex-direction: column;
+    }
+    
+    .three-gallery>figure{
+        margin-bottom: 10px;
+        max-width: 50%;
+    }
+}
+
+@media (max-width: 500px){
+   .three-gallery>figure{
+        max-width: 100%;
+    } 
+}
+
+
+@media (max-width: 700px){
+    .links-nav{
+        flex-direction: column;
+    }
+
+    .links-nav>span>a{
+        width: 100%;
+        display: inline-block;
+        line-height: 2em;
+    }
+
+    .vertical-divider-nav{
+        display: none;
+    }
+    .overview{
+        flex-direction: column;
+    }
+    
+    .tags>ul>li{
+        white-space: nowrap;
+        display: inline list-item;
+    }
+}
+
