@@ -4,4 +4,4 @@ PyMuPDF
 Pillow
 sentence-transformers
 opencv-python
-
+playwright

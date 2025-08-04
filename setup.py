@@ -17,7 +17,8 @@ setup(
         "PyMuPDF",  # maps to PyMuPDF
         "Pillow",
         "sentence-transformers",
-        "opencv-python"
+        "opencv-python",
+        "playwright"
     ],
     cmdclass={
         'install': CustomInstall,

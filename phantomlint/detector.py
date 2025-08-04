@@ -28,7 +28,7 @@ def detect_hidden_phrases(input_path: Path, output_dir: Path, ocr: OCREngine, sp
     suspicious_phrases = [] # a list of pairs (full_phrase, spans)
     hidden_phrases = [] # a list of pairs (hidden,e), see below
 
-    log.info("running analysis to detect suspicious phrases...")
+    log.info(f"running analysis to detect suspicious phrases over {len(elements)} elements...")
     # do all the analysis before running further pipeline stages
     # to avoid intermixing analysis and OCR etc.
     for e in elements:

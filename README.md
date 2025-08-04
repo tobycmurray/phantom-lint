@@ -22,6 +22,16 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Install Tesseract. For instance, on MacOS with Homebrew:
+```bash
+brew install tesseract
+```
+On (Debian-based) Linux:
+```bash
+sudo apt install tesseract-ocr
+```
+
+
 ### Install Package
 
 ```bash

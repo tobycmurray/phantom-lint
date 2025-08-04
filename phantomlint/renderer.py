@@ -3,18 +3,149 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
 from PIL import Image
+from playwright.sync_api import sync_playwright
+from io import BytesIO
 import pymupdf  # PyMuPDF
 import logging
 
 log = logging.getLogger(__name__)
 
-SUPPORTED_FILETYPES=["pdf"]
+SUPPORTED_FILETYPES=["pdf","html","htm"]
 def renderer_for(path: Path, dpi: int) -> Renderer:
     if path.suffix.lower() == ".pdf":
         return PDFRenderer(dpi)
+    elif path.suffix.lower() in [".html", ".htm"]:
+        return HTMLRenderer()
     else:
         return None
 
+
+class HTMLRendererElement(RendererElement):
+    def __init__(self, text: str, image: Image.Image, box):
+        self.text = text
+        self.image = image
+        self.box = box
+        self.page_number = 0 # FIXME: this shouldn't be relied on in detector.py
+
+    def get_text(self) -> str:
+        return self.text
+
+    def render_image(self) -> Image.Image:
+        # Crop and save image
+        cropped = self.image.crop((
+            int(self.box['x']),
+            int(self.box['y']),
+            int(self.box['x'] + self.box['width']),
+            int(self.box['y'] + self.box['height'])
+        ))
+
+        return cropped
+
+def get_text_node_handles(page):
+    array_handle = page.evaluate_handle("""
+    () => {
+        const results = [];
+
+        function walk(node) {
+            if (node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0) {
+                results.push(node);
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                for (const child of node.childNodes) {
+                    walk(child);
+                }
+            }
+        }
+
+        walk(document.body);
+        return results;
+    }
+    """)
+    props = array_handle.get_properties()
+    # These are already JSHandle objects for text nodes
+    return list(props.values())
+
+def get_text_node_bounding_box(text_node_handle):
+    return text_node_handle.evaluate("""
+    (node) => {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const rect = range.getBoundingClientRect();
+        return {
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height
+        };
+    }
+    """)
+
+# currently unused
+def get_text_nodes_with_parent_handles(page):
+    # JS: collect text nodes and return their parent elements + text
+    array_handle = page.evaluate_handle("""
+    () => {
+        const results = [];
+
+        function walk(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent.trim();
+                if (text.length > 0) {
+                    results.push({ text, parent: node.parentElement });
+                }
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                for (const child of node.childNodes) {
+                    walk(child);
+                }
+            }
+        }
+
+        walk(document.body);
+        return results;
+    }
+    """)
+
+    # Extract list of { text, parent } from JS
+    properties = array_handle.get_properties()
+    output = []
+
+    for entry in properties.values():
+        obj = entry.json_value()
+        parent_el = entry.get_property("parent").as_element()
+        text = obj["text"]
+        if parent_el is not None and text.strip():
+            output.append((parent_el, text.strip()))
+
+    return output
+
+class HTMLRenderer(Renderer):
+    def get_elements(self, path: Path) -> List[HTMLRendererElement]:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page(viewport={'width': 1024, 'height': 768})
+            html_content = path.read_text(encoding="utf-8")
+            page.set_content(html_content)
+            screenshot_bytes = page.screenshot(full_page=True)
+            image = Image.open(BytesIO(screenshot_bytes))
+
+            #res = get_text_nodes_with_parent_handles(page)
+            res = get_text_node_handles(page)
+            
+            elements = []
+            #for parent,text in res:
+            for node in res:
+                #text = text.strip()
+                #log.info(f"Got text node '{text}' whose parent is {parent}")                
+                text = node.evaluate("n => n.textContent.trim()")
+                log.info(f"Got text node '{text}'")
+                #box = parent.bounding_box()
+                box = get_text_node_bounding_box(node)
+                if not box:
+                    continue
+                element = HTMLRendererElement(text, image, box)
+                elements.append(element)
+                
+            return elements
+    
 class PDFRendererElement(RendererElement):
     def __init__(self, page_number, page, block, image, zoom):
         self.page = page

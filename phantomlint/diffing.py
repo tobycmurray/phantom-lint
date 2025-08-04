@@ -1,6 +1,5 @@
 from phantomlint.interfaces import Differ
 from phantomlint.word_spans import Span, extract_and_merge_spans, filter_overlapping
-from phantomlint.nlp import nlp
 from abc import ABC, abstractmethod
 from typing import List
 from sentence_transformers import SentenceTransformer, util
