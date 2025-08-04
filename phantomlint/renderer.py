@@ -15,6 +15,7 @@ def renderer_for(path: Path, dpi: int) -> Renderer:
     if path.suffix.lower() == ".pdf":
         return PDFRenderer(dpi)
     elif path.suffix.lower() in [".html", ".htm"]:
+        log.warning("HTML support is currently experimental")
         return HTMLRenderer()
     else:
         return None
@@ -79,7 +80,6 @@ def get_text_node_bounding_box(text_node_handle):
     }
     """)
 
-# currently unused
 def get_text_nodes_with_parent_handles(page):
     # JS: collect text nodes and return their parent elements + text
     array_handle = page.evaluate_handle("""
@@ -121,7 +121,7 @@ class HTMLRenderer(Renderer):
     def get_elements(self, path: Path) -> List[HTMLRendererElement]:
         with sync_playwright() as p:
             browser = p.chromium.launch()
-            page = browser.new_page(viewport={'width': 1024, 'height': 768})
+            page = browser.new_page(viewport={'width': 1920, 'height': 1080})
             html_content = path.read_text(encoding="utf-8")
             page.set_content(html_content)
             screenshot_bytes = page.screenshot(full_page=True)
