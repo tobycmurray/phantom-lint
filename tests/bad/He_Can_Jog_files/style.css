@@ -1,0 +1,325 @@
+:root {
+    --color-dark-highlight: #f18f26;
+    --color-highlight: #ffcc2d;
+    --color-light-highlight: #fee7b8;
+    --color-contrast: #e75a70;
+    --color-neutral: #67757f;
+
+    --color-dark-highlight: #0099ff;
+    --color-highlight: #dbe5e9;
+
+    --color-white: #fff;
+    --color-off-white: #fafafa;
+    --color-black: #292f33;
+    --color-black: #111;
+    --color-true-black: #000;
+
+}
+
+html {
+    background: #6000b0 url(/img/pat-bg.png) no-repeat center center fixed;
+    background: var(--color-highlight) url(/img/pat-bg.png) no-repeat center center fixed;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    background-size: cover; 
+}
+
+img {
+    image-rendering: auto;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+
+}
+
+video {
+    width: 100%;
+}
+
+img.crop {
+    object-fit: cover;
+    height: 230px;
+    width: 100%;
+    object-position: center;
+}
+
+main, header, footer {
+    width: 42rem;
+    margin: 0 auto;
+}
+
+main {
+    background-color: #8b00ff;
+    background-color: #eee;
+    background-color: var(--color-off-white);
+    padding: 1rem 2rem;
+    border: 2px dotted var(--color-white);
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+main:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #a943ff url(/claris/claris02.gif) repeat;
+    background: var(--color-dark-highlight) url(/claris/claris02.gif) repeat;
+    transform: rotate(4deg);
+    z-index: -1;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: middle;
+    align-content: middle;
+    width: 42rem;
+    margin: 0 auto;
+    padding-bottom: 1.5rem;
+}
+
+header nav, header nav ul {
+    margin: 0;
+    padding: 0;
+}
+
+header nav ul {
+    margin-top: 0.5rem;
+}
+
+blockquote {
+    border-left: 3px solid var(--color-highlight);
+    padding-left: 0.5rem;
+}
+
+p, a, h1, h2, h3, h4, li, figcaption {
+    font-family: sans-serif;
+    transition: 0.3s;
+    color: #ddd;
+    color: #222;
+    color: var(--color-black);
+    line-height: 1.5;
+}
+
+h2 {
+   color: var(--color-dark-highlight); 
+   font-size: 1.7rem;
+   margin: 0;
+   padding: 0;
+   text-align: center;
+   margin-top: 4rem;
+   margin-bottom: 2rem;
+   image-rendering: pixelated;
+   font-smooth: never;
+   transition: 10s ease-in-out;
+}
+
+li {
+    margin-bottom: 0.5rem;
+}
+
+nav a {
+    font-weight: 800;
+    text-decoration: none;
+    border-bottom: 2px dotted #96ddff;
+    border-bottom: 2px dotted #ddd;
+    padding: 4px 8px;
+    padding-bottom: 5px;
+    background: #a943ff url(/claris/claris02.gif) repeat;
+    background: var(--color-off-white) url(/claris/claris02.gif) repeat;
+    text-shadow: 2px 2px 0 #48413a;
+    text-shadow: none;
+    color: #96ddff;
+    color: #222;
+    color: var(--color-black);
+}
+
+a:hover {
+    background: none;
+    background: var(--color-dark-highlight) url(/claris/claris02.gif) repeat;
+    color: #fff;
+    color: #000;
+    color: var(--color-white);
+}
+
+hr {
+    border: 1px solid #eee;
+    margin-top: 5rem;
+}
+
+img {
+    /*
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    */
+    max-width: 100%;
+}
+
+.frame {
+    padding-bottom: 2rem;
+}
+
+.frame::after, .post::after {
+    content: '';
+    display: block;
+    clear: both;
+}
+
+.frame img, .post figure {
+    float: left;    
+    margin: 0;
+    margin-right: 1rem;
+}
+
+.list, .listeninglist, .bloglist {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+.taglist li {
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.byline {
+    padding: 0;
+    margin: 0;
+}
+
+.summary {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+h2 + .byline {
+    margin-top: -1rem;
+}
+
+.post figure {
+    width: 200px;
+    margin-right: 4rem;
+}
+
+ul.home {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+ul.home li {
+    border-bottom: 2px solid #eee;
+    margin-top: 1rem;
+    margin-bottom: 3rem;
+}
+
+nav ul {
+    padding: 0;
+    padding-bottom: 1.5rem;
+    width: max-content;
+}
+
+nav ul li {
+    display: inline-block;
+    margin-right: 0.5rem;
+    font-size: 100%;
+}
+
+footer nav a {
+    font-size: 80%;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.9rem;
+    width: 100%;
+    text-align: center;
+}
+
+header h1 a {
+    background: none;
+    color: var(--color-white);
+    text-decoration: none;
+}
+
+svg#header-logo {
+    width: 12rem;
+    height: auto;
+    transform: translateY(0.3rem);
+}
+
+svg#header-logo path {
+    fill: var(--color-white);
+}
+
+header h1 a:hover {
+    text-decoration: underline;
+}
+
+summary {
+    list-style: none;
+    position: relative;
+    color: var(--color-dark-highlight);
+    font-size: 120%;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+summary::marker {
+    display: none;
+}
+
+summary:after {
+    content: '?';
+    position: absolute;
+    top: 0;
+    left: -1rem;
+}
+
+summary[open]:after {
+    content: '!';
+}
+
+summary p {
+    display: inline-block;
+    font-weight: 800;
+    color: var(--color-dark-highlight);
+}
+
+
+pre {
+    max-width: 100%;
+    overflow-x: auto;
+    background-color: #a943ff;
+    background-color: var(--color-highlight);
+    border: 2px solid #8b00ff;
+    border: 2px solid var(--color-white);;
+    padding: 0.5rem;
+}
+code {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    background-color: #a943ff;
+    background-color: var(--color-highlight);
+    color: var(--color-true-black);
+    padding: 0.125rem 0.25rem;
+    font-size: 1rem;
+}
+
+p.twtxt {
+    display: block;
+    outline: 2px dotted #ffcc2d;
+    padding: 8px;
+    margin: 8px 0;
+    background: #fff6db;
+
+    transition: 10s ease-in-out;
+    transform: perspective(30cm) rotateX(20deg);
+    box-shadow: 0 20px 10px -5px rgba(0,0,0,0.03);
+}
+
+
