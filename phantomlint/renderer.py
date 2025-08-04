@@ -48,7 +48,8 @@ def get_text_node_handles(page):
         const results = [];
 
         function walk(node) {
-            if (node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0) {
+            // some HTML pages have very small text nodes, on which we won't detect anything
+            if (node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 10) {
                 results.push(node);
             } else if (node.nodeType === Node.ELEMENT_NODE) {
                 for (const child of node.childNodes) {
@@ -136,7 +137,7 @@ class HTMLRenderer(Renderer):
                 #text = text.strip()
                 #log.info(f"Got text node '{text}' whose parent is {parent}")                
                 text = node.evaluate("n => n.textContent.trim()")
-                log.info(f"Got text node '{text}'")
+                #log.info(f"Got text node '{text}'")
                 #box = parent.bounding_box()
                 box = get_text_node_bounding_box(node)
                 if not box:
