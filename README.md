@@ -1,6 +1,6 @@
 # PhantomLint
 
-Detect unwanted, hidden text in PDF documents.
+Detect unwanted, hidden text in documents.
 
 ## Download
 
@@ -43,8 +43,10 @@ The `-e` option installs the package in editable mode for development.
 ## Usage
 
 ```bash
-phantomlint input_file.pdf --output output_directory/
+phantomlint input_file --output output_directory/
 ```
+
+Currently supported `input_file` formats are PDF and HTML.
 
 PhantomLint will place two text files in the `output_directory/`:
 * `suspicious_phrases.txt`, which details all of the suspicious
@@ -204,7 +206,8 @@ obscure it).
 ## More Examples
 
 Example test cases, including real papers obtained from [arXiv](https://arxiv.org/), are
-in the `tests/` directory.
+in the `tests/` directory. These include a small handful of HTML
+web pages, too.
 
 ### `bad` examples
 
