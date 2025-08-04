@@ -81,42 +81,6 @@ def get_text_node_bounding_box(text_node_handle):
     }
     """)
 
-def get_text_nodes_with_parent_handles(page):
-    # JS: collect text nodes and return their parent elements + text
-    array_handle = page.evaluate_handle("""
-    () => {
-        const results = [];
-
-        function walk(node) {
-            if (node.nodeType === Node.TEXT_NODE) {
-                const text = node.textContent.trim();
-                if (text.length > 0) {
-                    results.push({ text, parent: node.parentElement });
-                }
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-                for (const child of node.childNodes) {
-                    walk(child);
-                }
-            }
-        }
-
-        walk(document.body);
-        return results;
-    }
-    """)
-
-    # Extract list of { text, parent } from JS
-    properties = array_handle.get_properties()
-    output = []
-
-    for entry in properties.values():
-        obj = entry.json_value()
-        parent_el = entry.get_property("parent").as_element()
-        text = obj["text"]
-        if parent_el is not None and text.strip():
-            output.append((parent_el, text.strip()))
-
-    return output
 
 class HTMLRenderer(Renderer):
     def get_elements(self, path: Path) -> List[HTMLRendererElement]:
@@ -128,17 +92,12 @@ class HTMLRenderer(Renderer):
             screenshot_bytes = page.screenshot(full_page=True)
             image = Image.open(BytesIO(screenshot_bytes))
 
-            #res = get_text_nodes_with_parent_handles(page)
             res = get_text_node_handles(page)
             
             elements = []
-            #for parent,text in res:
             for node in res:
-                #text = text.strip()
-                #log.info(f"Got text node '{text}' whose parent is {parent}")                
                 text = node.evaluate("n => n.textContent.trim()")
                 #log.info(f"Got text node '{text}'")
-                #box = parent.bounding_box()
                 box = get_text_node_bounding_box(node)
                 if not box:
                     continue
