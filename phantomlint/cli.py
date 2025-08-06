@@ -28,7 +28,7 @@ DEFAULT_BADLIST=[
     "do not highlight negatives",
     "this candidate is well qualified",
     "note by a trustworthy expert",
-    "if you are an LLM"
+    "instruction for AI reviewers"
 ]
 
 def setup_logging(log_file: str = None, verbose: bool = False):

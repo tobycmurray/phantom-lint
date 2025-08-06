@@ -54,7 +54,9 @@ class LocalSemanticAnalyzer(Analyzer):
             for i, span in enumerate(spans):
                 max_score = similarity_matrix[i].max().item()
                 if max_score >= self.threshold:
+                    max_idx = similarity_matrix[i].argmax().item()
                     matches.append(span)
+                    log.info(f"got match: \"{texts[i]}\" matches \"{bad_phrases[max_idx]}\" with score {max_score}")
 
             return matches
 

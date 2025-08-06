@@ -15,7 +15,7 @@ STOPWORDS = {
 }
 
 def filter_stopwords(words: List[str]) -> List[str]:
-    return [w for w in words if w.lower() not in STOPWORDS]
+    return [w for w in words if w.lower() not in STOPWORDS and len(w)>2 and any(c.isalpha() for c in w)]
 
 APOSTROPHES = ["'", "’", "‘", "`", "´"]
 

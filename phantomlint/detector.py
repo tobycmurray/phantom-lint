@@ -7,6 +7,7 @@ import re
 import unicodedata
 import os
 import logging
+import sys
 
 log = logging.getLogger(__name__)
 
@@ -77,3 +78,9 @@ Hidden suspicious phrases found on page {e.page_number} inside the following tex
 
     print(verdict)
     log.info(verdict)
+
+    if len(hidden_phrases) > 0:
+        sys.exit(1)
+    else:
+        sys.exit(0)
+
