@@ -18,7 +18,8 @@ setup(
         "Pillow",
         "sentence-transformers",
         "opencv-python",
-        "playwright"
+        "playwright",
+        "pdftotext"
     ],
     cmdclass={
         'install': CustomInstall,

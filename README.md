@@ -22,13 +22,13 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Install Tesseract. For instance, on MacOS with Homebrew:
+Install Tesseract and Poppler. For instance, on MacOS with Homebrew:
 ```bash
-brew install tesseract
+brew install tesseract poppler
 ```
 On (Debian-based) Linux:
 ```bash
-sudo apt install tesseract-ocr
+sudo apt install tesseract-ocr poppler-utils
 ```
 
 

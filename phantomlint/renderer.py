@@ -6,6 +6,7 @@ from PIL import Image
 from playwright.sync_api import sync_playwright
 from io import BytesIO
 import pymupdf  # PyMuPDF
+import pdftotext
 import re
 import logging
 
@@ -166,7 +167,10 @@ class PDFRenderer(Renderer):
             )
             contents = page.read_contents()
             if contents and clipping_pattern.findall(contents):
-                log.warning(f"page {page_number} contains clipping paths, which may obscure hidden text")
+                log.warning(f"Page {page_number} contains clipping paths. Using pdftotext renderer for it")
+                e = PDFToTextPageRendererElement(page_number, path, image)
+                elements.append(e)
+                continue
 
             # if we don't find any lines on the page, fall back to using whole-page rendering
             found_lines=False
@@ -193,6 +197,23 @@ class PDFPageRendererElement(RendererElement):
         
     def get_text(self) -> str:
         return self.page.get_text("text")
+
+    def render_image(self) -> Image.Image:
+        return self.image
+
+
+class PDFToTextPageRendererElement(RendererElement):
+    def __init__(self, page_number, path, image):
+        self.path = path
+        self.page_number = page_number
+        self.image = image
+
+    def get_text(self) -> str:
+        with open(self.path, "rb") as f:
+            pdf = pdftotext.PDF(f)
+            # in pdftotext, page numbers are indexed from 0
+            page_text = pdf[self.page_number-1]
+            return page_text
 
     def render_image(self) -> Image.Image:
         return self.image
