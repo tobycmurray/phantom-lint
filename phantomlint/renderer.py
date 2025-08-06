@@ -149,7 +149,14 @@ class PDFRenderer(Renderer):
             mat = pymupdf.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat)
             image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-            
+
+            # before we extract text, but *after* we have the page's image
+            # enlarge the CropBox to match the MediaBox dimensions, to make
+            # sure we will see all text inside the MediaBox that migth
+            # otherwise be missed
+            media_box = page.mediabox
+            page.set_cropbox(media_box)
+
             # if we don't find any lines on the page, fall back to using whole-page rendering
             found_lines=False
             for block in page.get_text("dict")["blocks"]:
