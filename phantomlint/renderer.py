@@ -6,6 +6,7 @@ from PIL import Image
 from playwright.sync_api import sync_playwright
 from io import BytesIO
 import pymupdf  # PyMuPDF
+import re
 import logging
 
 log = logging.getLogger(__name__)
@@ -157,9 +158,19 @@ class PDFRenderer(Renderer):
             media_box = page.mediabox
             page.set_cropbox(media_box)
 
+            # check for clippping paths, since PyMuPDF won't return text
+            # that is hidden by one of these. emit a warning in that case
+            # match rectangles followed by clip operators W or W* and n
+            clipping_pattern = re.compile(
+                rb"(\d+(\.\d+)?\s+){4}re\s+W\*?\s+n", re.MULTILINE
+            )
+            contents = page.read_contents()
+            if contents and clipping_pattern.findall(contents):
+                log.warning(f"page {page_number} contains clipping paths, which may obscure hidden text")
+
             # if we don't find any lines on the page, fall back to using whole-page rendering
             found_lines=False
-            for block in page.get_text("dict")["blocks"]:
+            for block in page.get_text("dict",clip=pymupdf.INFINITE_RECT())["blocks"]:
                 if block["type"] != 0:  # Only text blocks
                     continue
                 if block.get("lines", []) != []:
