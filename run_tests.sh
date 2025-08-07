@@ -15,7 +15,7 @@ for i in ${GOOD_TESTS}; do
     output_file="${output_dir}/hidden_suspicious_phrases.txt"
     if [ ! -f "${output_file}" ]; then
 	echo "Running good test $base..."
-	phantomlint $i --output ${output_dir} --verbose --log-file log-good-$base.txt 2>/dev/null >/dev/null
+	phantomlint $i --output ${output_dir} --verbose --log-file log-good-$base.txt >tee-good-$base 2>&1
     else
 	echo "Good test $base already run. Skipping"
     fi
@@ -36,7 +36,7 @@ for i in ${BAD_TESTS}; do
     output_file="${output_dir}/hidden_suspicious_phrases.txt"
     if [ ! -f "${output_file}" ]; then
 	echo "Running bad test $base..."
-	phantomlint $i --output ${output_dir} --verbose --log-file log-bad-$base.txt 2>/dev/null >/dev/null
+	phantomlint $i --output ${output_dir} --verbose --log-file log-bad-$base.txt >tee-bad-$base 2>&1
     else
 	echo "Bad test $base already run. Skipping"
     fi

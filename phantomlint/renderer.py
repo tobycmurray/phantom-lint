@@ -107,7 +107,41 @@ class HTMLRenderer(Renderer):
                 elements.append(element)
                 
             return elements
-    
+
+# Notes on different PDF text rendering approaches:
+# There are various challenges we might need to deal with:
+# - Text that falls outside a page's CropBox
+# - Text that falls outside a page's MediaBox
+# - Text obscured by a (zero) Clipping Path
+#
+# At the same time, we ideally want a renderer approach that
+# returns individual chunks of text with bounding boxes, i.e.
+# is "localised"
+#
+# There are various text renderers we might use for PDF:
+# - pymupdf
+# - pdfminer.six
+# - pdftotext
+#
+# Each has pros and cons, per the table below:
+#
+# Renderer      Sees outside   Sees outside    Ignores    Localised
+# Approach       CropBox        MediaBox      Clipping    Rendering
+# -------------------------------------------------------------------
+#
+#  pymupdf      no, but can        no            no          yes
+#               adjust CropBox
+#
+#  pdfminer.six    no              no            yes         yes
+#
+#  pdftotext       yes             no            yes         no
+#
+# At present, we do not attempt to see outside the MediaBox at all.
+# We use pymupdf, and adjust the CropBox to match the MediaBox, and
+# implement detection for pages that contain Clipping Paths. If we
+# cannot adjust a page's CropBox, or we detect Clipping Paths, we
+# fall back to using pdftotext on that page. This seems like a
+# reasonable compromise. 
 class PDFRendererElement(RendererElement):
     def __init__(self, page_number, page, block, image, zoom):
         self.page = page
@@ -157,7 +191,13 @@ class PDFRenderer(Renderer):
             # sure we will see all text inside the MediaBox that migth
             # otherwise be missed
             media_box = page.mediabox
-            page.set_cropbox(media_box)
+            try:
+                page.set_cropbox(media_box)
+            except Exception:
+                log.warning(f"Failed to align CropBox with MediaBox on page {page_number}. Using pdftotext renderer for it")
+                e = PDFToTextPageRendererElement(page_number, path, image)
+                elements.append(e)
+                continue
 
             # check for clippping paths, since PyMuPDF won't return text
             # that is hidden by one of these. emit a warning in that case
