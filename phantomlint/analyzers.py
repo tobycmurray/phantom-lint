@@ -2,8 +2,9 @@ from phantomlint.interfaces import Analyzer
 from phantomlint.word_spans import extract_and_merge_spans, Span
 from typing import List, Tuple
 from sentence_transformers import SentenceTransformer, util
-#from llm_guard.input_scanners import PromptInjection
-#from llm_guard.validators import InputValidator
+from llm_guard import scan_prompt
+from llm_guard.input_scanners import PromptInjection
+
 import re
 import logging
 
@@ -16,14 +17,14 @@ class PassthroughAnalyzer(Analyzer):
             ans.append((phrase,[Span(start=0,end=len(phrase),text=phrase)]))
         return ans
 
+def filter_text(text):
+    return ''.join(c for c in text if c.isalpha() or c.isspace())
+
 class LocalSemanticAnalyzer(Analyzer):
     def __init__(self, threshold: float = 0.75):
         self.encoder = SentenceTransformer("all-MiniLM-L6-v2")
         self.threshold = threshold
 
-    def filter_text(self, text):
-        return ''.join(c for c in text if c.isalpha() or c.isspace())
-    
     def analyze(self, bad_phrases: List[str], phrases: List[str]) -> List[Tuple[str, List[Span]]]:
         known_embeddings = self.encoder.encode(bad_phrases, convert_to_tensor=True)
 
@@ -43,7 +44,7 @@ class LocalSemanticAnalyzer(Analyzer):
             if not spans:
                 return []
 
-            texts = [self.filter_text(span.text) for span in spans]
+            texts = [filter_text(span.text) for span in spans]
             span_embeddings = self.encoder.encode(texts, convert_to_tensor=True)
 
             # Compute cosine similarities
@@ -69,16 +70,16 @@ class LocalSemanticAnalyzer(Analyzer):
         return matches
 
 
-# I currently cannot get llm-guard working on my machine
-# class LLMGuardAnalyzer(Analyzer):
-#     def __init__(self, threshold: float = 0.5):
-#         self.validator = InputValidator(scanners=[PromptInjection(min_score=threshold)])
-#         self.threshold = threshold
+class LLMGuardAnalyzer(Analyzer):
+    def __init__(self):
+        self.input_scanners = [PromptInjection(match_type="full")]
 
-#     def analyze(self, phrases: List[str]) -> List[str]:
-#         flagged = []
-#         for phrase in phrases:
-#             result, _ = self.validator.validate(phrase)
-#             if not result["is_valid"]:
-#                 flagged.append(phrase)
-#         return flagged
+    def analyze(self, bad_phrases: List[str], phrases: List[str]) -> List[Tuple[str, List[Span]]]:
+        matches = []
+        for phrase in phrases:
+            span=Span(start=0,end=len(phrase),text=phrase)
+            sanitized_prompt, results_valid, results_score = scan_prompt(self.input_scanners, phrase)
+            if any(not result for result in results_valid.values()):
+                matches.append((phrase,[span]))                
+
+        return matches

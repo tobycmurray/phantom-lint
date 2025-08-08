@@ -72,8 +72,8 @@ class TesseractOCREngine(OCREngine):
                 img = suppress_low_contrast_color(img)
                 text = pytesseract.image_to_string(img, config='--psm 1 --oem 1')
                 texts.append(text)
-            except Exception:
-                log.warning("Failed to OCR image. No text returned")
+            except Exception as ex:
+                log.warning(f"Failed to OCR image. No text returned: {ex}")
                 continue
         return "\n".join(texts)
 

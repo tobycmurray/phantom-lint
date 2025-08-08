@@ -19,7 +19,8 @@ setup(
         "sentence-transformers",
         "opencv-python",
         "playwright",
-        "pikepdf"
+        "pikepdf",
+        "llm-guard"
     ],
     cmdclass={
         'install': CustomInstall,

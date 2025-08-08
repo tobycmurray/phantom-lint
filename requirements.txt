@@ -6,3 +6,4 @@ sentence-transformers
 opencv-python
 playwright
 pikepdf
+llm-guard
