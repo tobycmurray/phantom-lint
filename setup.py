@@ -19,7 +19,7 @@ setup(
         "sentence-transformers",
         "opencv-python",
         "playwright",
-        "pdftotext"
+        "pikepdf"
     ],
     cmdclass={
         'install': CustomInstall,

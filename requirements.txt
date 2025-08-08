@@ -5,4 +5,4 @@ Pillow
 sentence-transformers
 opencv-python
 playwright
-pdftotext
+pikepdf

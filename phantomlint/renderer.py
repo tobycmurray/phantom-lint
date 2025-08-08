@@ -6,7 +6,9 @@ from PIL import Image
 from playwright.sync_api import sync_playwright
 from io import BytesIO
 import pymupdf  # PyMuPDF
-import pdftotext
+import subprocess
+import pikepdf
+import tempfile
 import re
 import logging
 
@@ -129,26 +131,27 @@ class HTMLRenderer(Renderer):
 # Approach       CropBox        MediaBox      Clipping    Rendering
 # -------------------------------------------------------------------
 #
-#  pymupdf      no, but can        no            no          yes
-#               adjust CropBox
+#  pymupdf         no              no            no          yes
 #
 #  pdfminer.six    no              no            yes         yes
+#     * NOTE: pdfminer.six sometimes misses text areas
 #
 #  pdftotext       yes             no            yes         no
 #
-# At present, we do not attempt to see outside the MediaBox at all.
-# We use pymupdf, and adjust the CropBox to match the MediaBox, and
-# implement detection for pages that contain Clipping Paths. If we
-# cannot adjust a page's CropBox, or we detect Clipping Paths, we
-# fall back to using pdftotext on that page. This seems like a
-# reasonable compromise. 
+# Therefore, we use the following strategy:
+# 1. Use pymupdf to get images of each page, respecting CropBox etc.
+# 2. Use pikepdf to remove CropBox and expand MediaBox on each page
+# 3. Check for the presence of Clipping Paths, if present
+# 4a.  Fall back to pdftotext -raw, foregoing localised rendering
+# 4b.  Otherwise, use pymupdf but remember to account for MediaBox expansion
 class PDFRendererElement(RendererElement):
-    def __init__(self, page_number, page, block, image, zoom):
+    def __init__(self, page_number, page, block, image, zoom, expansion: int = 0):
         self.page = page
         self.page_number = page_number
         self.block = block
         self.image = image
         self.zoom = zoom
+        self.expansion = expansion
 
     def get_text(self) -> str:
         block_text = ""
@@ -160,7 +163,11 @@ class PDFRendererElement(RendererElement):
         return block_text
         
     def render_image(self) -> Image.Image:
-        x0, y0, x1, y1 = [int(coord * self.zoom) for coord in self.block["bbox"]]
+        # translate bbox coordinates to take into account the expansion that might have been applied
+        bbx0, bby0, bbx1, bby1 = self.block["bbox"]
+        bbox = (bbx0-self.expansion, bby0-self.expansion, bbx1-self.expansion, bby1-self.expansion)
+
+        x0, y0, x1, y1 = [int(coord * self.zoom) for coord in bbox]
 
         # Clamp coordinates within image bounds
         image_width, image_height = self.image.size
@@ -173,34 +180,54 @@ class PDFRendererElement(RendererElement):
         return cropped_image
     
 class PDFRenderer(Renderer):
-    def __init__(self, dpi: int):
+    def __init__(self, dpi: int, expansion: int = 10000):
         self.dpi = dpi
+        self.expansion = expansion
         
     def get_elements(self, path: Path) -> List[PDFRendererElement]:
         elements = []
         doc = pymupdf.open(path)
+        num_pages = doc.page_count        
 
+        # collect images of each page
+        images = []    # is zero-indexed
         for page_number, page in enumerate(doc, start=1):
             zoom = self.dpi / 72.0  # PDF default resolution is 72 DPI
             mat = pymupdf.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat)
             image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+            images.append(image)
 
-            # before we extract text, but *after* we have the page's image
-            # enlarge the CropBox to match the MediaBox dimensions, to make
-            # sure we will see all text inside the MediaBox that migth
-            # otherwise be missed
-            media_box = page.mediabox
-            try:
-                page.set_cropbox(media_box)
-            except Exception:
-                log.warning(f"Failed to align CropBox with MediaBox on page {page_number}. Using pdftotext renderer for it")
-                e = PDFToTextPageRendererElement(page_number, path, image)
-                elements.append(e)
-                continue
+        doc.close()
+
+        # now remove CropBox and expand MediaBox of each page
+        with pikepdf.open(path) as pdf:
+            for i, page in enumerate(pdf.pages):
+                page_obj = page.obj
+                if "/CropBox" in page_obj:
+                    del page_obj["/CropBox"]
+                if "/MediaBox" in page_obj:
+                    media_box = list(page_obj["/MediaBox"])
+                    media_box[0] = media_box[0] - self.expansion  # x0
+                    media_box[1] = media_box[1] - self.expansion  # y0
+                    media_box[2] = media_box[2] + self.expansion  # x1
+                    media_box[3] = media_box[3] + self.expansion  # y1
+                    page_obj["/MediaBox"] = pikepdf.Array(media_box)
+
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                pdf.save(tmp.name)
+                log.info(f"pdf sans CropBox, with expanded MediaBox, saved {tmp.name}")
+
+        # from now on, operate on the transformed pdf (sans CropBoxes etc.)
+        path = tmp.name
+
+        doc = pymupdf.open(path)
+        for page_number, page in enumerate(doc, start=1):
+            image = images[page_number-1]   # images is zero-indexed
 
             # check for clippping paths, since PyMuPDF won't return text
-            # that is hidden by one of these. emit a warning in that case
+            # that is hidden by one of these.
+            #
             # match rectangles followed by clip operators W or W* and n
             clipping_pattern = re.compile(
                 rb"(\d+(\.\d+)?\s+){4}re\s+W\*?\s+n", re.MULTILINE
@@ -218,7 +245,7 @@ class PDFRenderer(Renderer):
                 if block["type"] != 0:  # Only text blocks
                     continue
                 if block.get("lines", []) != []:
-                    e = PDFRendererElement(page_number, page, block, image, zoom)
+                    e = PDFRendererElement(page_number, page, block, image, zoom, self.expansion)
                     elements.append(e)
                     found_lines=True
             if not found_lines:
@@ -248,12 +275,15 @@ class PDFToTextPageRendererElement(RendererElement):
         self.page_number = page_number
         self.image = image
 
+        result = subprocess.run(
+            ["pdftotext", "-raw", str(path), "-f", str(page_number), "-l", str(page_number), "-"],
+            stdout=subprocess.PIPE,
+            check=True
+        )
+        self.page_text = result.stdout.decode("utf-8")
+
     def get_text(self) -> str:
-        with open(self.path, "rb") as f:
-            pdf = pdftotext.PDF(f)
-            # in pdftotext, page numbers are indexed from 0
-            page_text = pdf[self.page_number-1]
-            return page_text
+        return self.page_text
 
     def render_image(self) -> Image.Image:
         return self.image
