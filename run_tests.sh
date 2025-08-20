@@ -39,8 +39,10 @@ for kind in good bad; do
 	# compute elapsed time
 	start=$(head -1 "${log_file}" | cut -d' ' -f1)
 	end=$(tail -1 "${log_file}" | cut -d' ' -f1)
-	start_sec=$(date -j -f "%H:%M:%S" "$start" +%s)
-	end_sec=$(date -j -f "%H:%M:%S" "$end" +%s)
+	IFS=: read -r h m s <<< "$start"
+	start_sec=$((10#$h*3600 + 10#$m*60 + 10#$s))	
+	IFS=: read -r h m s <<< "$end"
+	end_sec=$((10#$h*3600 + 10#$m*60 + 10#$s))	
 	elapsed=$((end_sec - start_sec))
     
 	hidden=$(cat "${output_file}")
@@ -67,7 +69,7 @@ for kind in good bad; do
 	    let num_passed_tests=$num_passed_tests+1	    
 	fi
 	str="$RES ($elapsed secs)"
-	cols=$(tput cols)
+	cols=${COLUMNS:-80}
 	let avail=$cols-$msg_len
 	printf "%*s\n" "$avail" "$str"
     done

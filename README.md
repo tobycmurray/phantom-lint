@@ -6,7 +6,27 @@ Detect unwanted, hidden text in documents.
 
 Clone this git repository.
 
-## Requirements
+## Quick Start via Docker Image
+
+To avoid installing dependencies, use the Docker image.
+
+```bash
+docker build -t phantomlint .
+docker run phantomlint --help
+```
+
+To scan files you'll need to mount a directory into the Docker container.
+For example, to run PhantomLint on the file `input.pdf` we
+make the current directory available inside the container at `/data`:
+```bash
+docker run -v $(pwd):/data phantomlint input.pdf --output /data/output_directory/
+```
+The output is then available outside the container in the `output_directory/`
+directory.
+
+See below for more usage information.
+
+## Installation Dependencies
 
 * Python 3, >= 3.9 and < 3.13
 * Tesseract
@@ -40,6 +60,10 @@ On (Debian-based) Linux:
 sudo apt install tesseract-ocr poppler-utils
 ```
 
+On Linux you may also need to install libGL for OpenCV to work:
+```bash
+sudo apt install libgl1 libglib2.0-0
+```
 
 ### Install Package
 
@@ -48,6 +72,15 @@ pip install -e .
 ```
 
 The `-e` option installs the package in editable mode for development.
+
+## Test Suite
+
+The `run_tests.sh` script runs all of PhantomLint's test cases (see below).
+
+If running inside the Docker container, you can run it like so:
+```bash
+docker run --rm -v $(pwd):/work -w /work --entrypoint bash phantomlint run_tests.sh
+```
 
 ## Usage
 
