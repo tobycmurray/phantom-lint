@@ -1,3 +1,4 @@
+# PhantomLint requires Python >=3.9,<3.13
 spacy
 pytesseract
 PyMuPDF

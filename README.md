@@ -6,10 +6,17 @@ Detect unwanted, hidden text in documents.
 
 Clone this git repository.
 
+## Requirements
+
+* Python 3, >= 3.9 and < 3.13
+* Tesseract
+* Poppler
+
 ## Installation
 
 Change to the directory where you cloned this repository.
-We recommend using a Python virtual environment:
+We recommend using a Python virtual environment. You'll need
+Python 3 >= 3.9 and < 3.13 at present.
 
 ```bash
 python -m venv venv
@@ -21,6 +28,8 @@ source venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
+
+If this fails with version problems, use `requirements-frozen.txt` instead.
 
 Install Tesseract and Poppler. For instance, on MacOS with Homebrew:
 ```bash

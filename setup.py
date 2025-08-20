@@ -32,5 +32,5 @@ setup(
     },
     author="Toby Murray",
     description="Detect unwanted hidden phrases in documents.",
-    python_requires=">=3.8",
+    python_requires=">=3.9,<3.13",
 )
