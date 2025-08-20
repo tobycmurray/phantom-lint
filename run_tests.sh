@@ -83,5 +83,8 @@ echo "Number of failed tests:     $num_failed_tests"
 
 if [ "$num_failed_tests" -ne 0 ]; then
     echo "Failed tests are listed in ${FAILED_TESTS}"
+    exit 1
 fi
-    
+
+# success
+exit 0
