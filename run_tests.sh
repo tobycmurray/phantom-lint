@@ -1,4 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Default mode
+QUICK_MODE=false
+
+# Check for -quick flag
+if [[ "${1:-}" == "-quick" ]]; then
+    QUICK_MODE=true
+    echo "Running in quick mode..."
+    shift  # remove the flag so $@ contains only test arguments, if any
+fi
 
 # clear failed tests log
 FAILED_TESTS=failed_tests.txt
@@ -13,14 +24,18 @@ echo "All test output will be placed in: ${TESTS_OUTPUT}"
 # needed for the TESTS=... variable-expansion and glob stuff to work below
 shopt -s nullglob
 
-let num_failed_tests=0
-let num_passed_tests=0
+num_failed_tests=0
+num_passed_tests=0
 
 for kind in good bad; do
-    TESTS=(tests/"$kind"/*.{html,pdf})  # tests is an array
+    if [ "$QUICK_MODE" = true ]; then
+	TESTS=(tests/"$kind"/fake_*.{html,pdf})  # tests is an array
+    else
+	TESTS=(tests/"$kind"/*.{html,pdf})  # tests is an array
+    fi
     NUM_TESTS=${#TESTS[@]}
     echo "Running ${NUM_TESTS} ${kind} tests..."
-    let count=0
+    count=0
     for i in "${TESTS[@]}"; do
 	base=$(basename $i)
 	output_dir="${TESTS_OUTPUT}/output-$kind-$base"
@@ -70,7 +85,7 @@ for kind in good bad; do
 	fi
 	str="$RES ($elapsed secs)"
 	cols=${COLUMNS:-80}
-	let avail=$cols-$msg_len
+	avail=$(( cols - msg_len ))
 	printf "%*s\n" "$avail" "$str"
     done
 done
