@@ -51,6 +51,12 @@ for kind in good bad; do
 	    msg="$msg ${kind} test $base already run."
 	    echo -n "$msg"
 	fi
+	if [ ! -f "${output_file}" ]; then
+	    echo "Unexpected absence of output file ${output_file}"
+	    echo "Here is the phantomlint output: "
+	    cat "${TESTS_OUTPUT}/tee-${kind}-$base"
+	    exit 1
+	fi
 	# compute elapsed time
 	start=$(head -1 "${log_file}" | cut -d' ' -f1)
 	end=$(tail -1 "${log_file}" | cut -d' ' -f1)
