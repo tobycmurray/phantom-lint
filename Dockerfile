@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     libxrandr2 \
     libxkbcommon0 \
     libasound2 \
+    libcups2 \
   && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
