@@ -12,11 +12,11 @@ if [[ "${1:-}" == "-quick" ]]; then
 fi
 
 # clear failed tests log
-FAILED_TESTS=failed_tests.txt
+FAILED_TESTS=$(mktemp /tmp/failed_tests.XXXXXX)
 echo -n > $FAILED_TESTS
 
 # directory where all test output is placed
-TESTS_OUTPUT=tests_output/
+TESTS_OUTPUT=$(mktemp -d /tmp/tests_output.XXXXXX)
 mkdir -p "${TESTS_OUTPUT}"
 
 echo "All test output will be placed in: ${TESTS_OUTPUT}"

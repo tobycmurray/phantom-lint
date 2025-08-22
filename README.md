@@ -1,5 +1,7 @@
 # PhantomLint
 
+[![CI](https://github.com/tobycmurray/phantom-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/tobycmurray/phantomlint/actions/workflows/ci.yml)
+
 Detect unwanted, hidden text in documents.
 
 ## Download
