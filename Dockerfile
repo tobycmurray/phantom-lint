@@ -18,6 +18,7 @@ WORKDIR /phantomlint
 COPY . /phantomlint
 
 RUN pip install -r requirements-frozen.txt
+RUN playwright install-deps
 RUN pip install .
 
 # Set ownership and permissions for the program
