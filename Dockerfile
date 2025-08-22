@@ -18,7 +18,6 @@ WORKDIR /phantomlint
 COPY . /phantomlint
 
 RUN pip install -r requirements-frozen.txt
-RUN playwright install
 RUN pip install .
 
 # Set ownership and permissions for the program
@@ -27,7 +26,7 @@ RUN chown -R phantomlint:phantomlint /phantomlint
 # Switch to the non-root user
 USER phantomlint
 
-
+RUN playwright install
 
 ENTRYPOINT [ "phantomlint" ]
 
