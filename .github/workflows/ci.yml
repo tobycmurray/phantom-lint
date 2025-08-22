@@ -1,0 +1,69 @@
+name: PhantomLint CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  schedule:
+    - cron: "0 0 * * *"   # daily at 00:00 UTC
+  workflow_dispatch:       # allow manual full runs if you ever want
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quick-tests:
+    name: Quick tests (on push/PR)
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t phantomlint .
+
+      - name: Run quick test suite
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/work" \
+            -w /work \
+            --entrypoint bash \
+            phantomlint run_tests.sh -quick
+
+  nightly-full:
+    name: Nightly full suite (only if changes in last 24h)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+            fetch-depth: 0   # we need history for the since filter
+
+      - name: Check if there were commits in last 24h
+        id: changes
+        shell: bash
+        run: |
+          COUNT=$(git log --since="24 hours ago" --pretty=oneline | wc -l)
+          if [ "$COUNT" -gt 0 ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Docker image
+        if: steps.changes.outputs.has_changes == 'true'
+        run: docker build -t phantomlint .
+
+      - name: Run full test suite
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/work" \
+            -w /work \
+            --entrypoint bash \
+            phantomlint run_tests.sh
+
+      - name: Skip (no pushes in last 24h)
+        if: steps.changes.outputs.has_changes != 'true'
+        run: echo "No commits in the last 24h — skipping full suite."
