@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-set -x
 
 # Default mode
 QUICK_MODE=false
@@ -46,7 +45,7 @@ for kind in good bad; do
 	msg="  [$count/$NUM_TESTS]"
 	if [ ! -f "${output_file}" ]; then
 	    msg="$msg Running ${kind} test $base..."
-	    phantomlint "$i" --output "${output_dir}" --verbose --log-file "${log_file}" >"${TESTS_OUTPUT}/tee-${kind}-$base" 2>&1
+	    phantomlint "$i" --output "${output_dir}" --verbose --log-file "${log_file}" >"${TESTS_OUTPUT}/tee-${kind}-$base" 2>&1 || true
 	    echo -n "$msg"
 	else
 	    msg="$msg ${kind} test $base already run."
