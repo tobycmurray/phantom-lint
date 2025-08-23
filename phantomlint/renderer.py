@@ -201,6 +201,7 @@ class PDFRenderer(Renderer):
         doc.close()
 
         # now remove CropBox and expand MediaBox of each page
+        # and also make sure all OCGs are visible etc.
         with pikepdf.open(path) as pdf:
             for i, page in enumerate(pdf.pages):
                 page_obj = page.obj
@@ -213,6 +214,28 @@ class PDFRenderer(Renderer):
                     media_box[2] = media_box[2] + self.expansion  # x1
                     media_box[3] = media_box[3] + self.expansion  # y1
                     page_obj["/MediaBox"] = pikepdf.Array(media_box)
+
+            root = pdf.Root
+            ocprops = root.get("/OCProperties", None)
+            if isinstance(ocprops, pikepdf.Object):
+                # Ensure default config dictionary exists
+                d = ocprops.get("/D", None)
+                if not isinstance(d, pikepdf.Dictionary):
+                    d = pikepdf.Dictionary()
+                    ocprops["/D"] = d
+
+                # Make all groups visible by default
+                d[pikepdf.Name("/BaseState")] = pikepdf.Name("/ON")
+
+                # Remove explicit OFF/ON lists (not needed when BaseState=/ON)
+                if "/OFF" in d:
+                    del d["/OFF"]
+                if "/ON" in d:
+                    del d["/ON"]
+
+                # Remove usage-based auto-states that some viewers apply
+                if "/AS" in ocprops:
+                    del ocprops["/AS"]
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 pdf.save(tmp.name)
