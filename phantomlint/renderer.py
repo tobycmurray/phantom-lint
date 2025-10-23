@@ -131,7 +131,7 @@ class HTMLRenderer(Renderer):
 # Approach       CropBox        MediaBox      Clipping    Rendering
 # -------------------------------------------------------------------
 #
-#  pymupdf         no              no            no          yes
+#  pymupdf         no              no          with flags     yes
 #
 #  pdfminer.six    no              no            yes         yes
 #     * NOTE: pdfminer.six sometimes misses text areas
@@ -141,9 +141,8 @@ class HTMLRenderer(Renderer):
 # Therefore, we use the following strategy:
 # 1. Use pymupdf to get images of each page, respecting CropBox etc.
 # 2. Use pikepdf to remove CropBox and expand MediaBox on each page
-# 3. Check for the presence of Clipping Paths, if present
-# 4a.  Fall back to pdftotext -raw, foregoing localised rendering
-# 4b.  Otherwise, use pymupdf but remember to account for MediaBox expansion
+# 3. Use pymupdf with flags to see clipped text but remember to account for
+#    MediaBox expansion
 class PDFRendererElement(RendererElement):
     def __init__(self, page_number, page, block, image, zoom, expansion: int = 0):
         self.page = page
@@ -178,7 +177,10 @@ class PDFRendererElement(RendererElement):
 
         cropped_image = self.image.crop((x0, y0, x1, y1))
         return cropped_image
-    
+
+# pymupdf flags, specifically instructing it to not ignore clipped text and not to preserve ligatures
+FLAGS = pymupdf.TEXTFLAGS_DICT & ~pymupdf.TEXT_MEDIABOX_CLIP & ~pymupdf.TEXT_PRESERVE_LIGATURES
+
 class PDFRenderer(Renderer):
     def __init__(self, dpi: int, expansion: int = 10000):
         self.dpi = dpi
@@ -248,23 +250,9 @@ class PDFRenderer(Renderer):
         for page_number, page in enumerate(doc, start=1):
             image = images[page_number-1]   # images is zero-indexed
 
-            # check for clippping paths, since PyMuPDF won't return text
-            # that is hidden by one of these.
-            #
-            # match rectangles followed by clip operators W or W* and n
-            clipping_pattern = re.compile(
-                rb"(\d+(\.\d+)?\s+){4}re\s+W\*?\s+n", re.MULTILINE
-            )
-            contents = page.read_contents()
-            if contents and clipping_pattern.findall(contents):
-                log.warning(f"Page {page_number} contains clipping paths. Using pdftotext renderer for it")
-                e = PDFToTextPageRendererElement(page_number, path, image)
-                elements.append(e)
-                continue
-
             # if we don't find any lines on the page, fall back to using whole-page rendering
             found_lines=False
-            for block in page.get_text("dict",clip=pymupdf.INFINITE_RECT())["blocks"]:
+            for block in page.get_text("dict", clip=pymupdf.INFINITE_RECT(), flags=FLAGS)["blocks"]:
                 if block["type"] != 0:  # Only text blocks
                     continue
                 if block.get("lines", []) != []:
@@ -286,12 +274,12 @@ class PDFPageRendererElement(RendererElement):
         self.image = image
         
     def get_text(self) -> str:
-        return self.page.get_text("text")
+        return self.page.get_text("text", flags=FLAGS)
 
     def render_image(self) -> Image.Image:
         return self.image
 
-
+# currently unused
 class PDFToTextPageRendererElement(RendererElement):
     def __init__(self, page_number, path, image):
         self.path = path
