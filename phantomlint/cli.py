@@ -84,7 +84,7 @@ def main():
 
     bad_phrases=[]
     if args.bad_list:
-        with open(args.injection_list, 'r', encoding='utf-8') as f:
+        with open(args.bad_list, 'r', encoding='utf-8') as f:
             bad_phrases = [line.strip() for line in f if line.strip()]
     else:
         bad_phrases=DEFAULT_BADLIST
